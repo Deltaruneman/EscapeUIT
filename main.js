@@ -158,7 +158,17 @@ function update() {
         }
     }
 }
-
+function pauseGame() {
+    if(keysPressed['ESCAPE']) {
+    isPaused = true;
+    document.getElementById('pause-screen').style.display = 'flex';
+}
+}
+function resumeGame() {
+    if(keysPressed['ESCAPE']) {
+    isPaused = false;
+    document.getElementById('pause-screen').style.display = 'none';
+}}
 function draw() {
     ctx.fillStyle = "#000"; ctx.fillRect(0,0,800,600);
     const map = getMap(currentRoomX, currentRoomY);
