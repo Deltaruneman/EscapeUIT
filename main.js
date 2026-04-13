@@ -361,8 +361,8 @@ window.battleAction = async function(action) {
 
     // Kiểm tra Boss chết
     if (bossHP <= 0) {
-        setTimeout(() => {
-             typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
+        setTimeout(async   () => {
+            await typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
             setTimeout(() => {
                 alert("CHÚC MỪNG! CHẾ ĐỘ TRUE ENDING ĐÃ ĐƯỢC MỞ KHÓA!");
                 location.reload(); 
@@ -374,11 +374,11 @@ window.battleAction = async function(action) {
     setTimeout(bossTurn, 2500);
 };
 
-function bossTurn() {
+async function bossTurn() {
     let dmg = Math.floor(Math.random() * 25) + 20;
     battleHP -= dmg;
     
-    typeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
+    awaittypeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
     updateBattleUI();
 
     if (battleHP <= 0) {
