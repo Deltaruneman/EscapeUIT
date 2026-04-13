@@ -122,9 +122,7 @@ function triggerJumpscare() {
 
 function update() {
     if (!gameRunning || isPaused) return;
-if(keysHeld['shiftLeft'] || keysHeld['shiftRight']){ {      
-        speedMultiplier = 1.5;
-    }
+
     let nx = player.x, ny = player.y;
     if (keysPressed['KeyW'] || keysPressed['ArrowUp']) ny -= player.speed;
     if (keysPressed['KeyS'] || keysPressed['ArrowDown']) ny += player.speed;
