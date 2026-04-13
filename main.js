@@ -38,11 +38,13 @@ function showStoryScreen(type) {
         return;
     }  else if (type === "ending_good") {
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
-        text.innerText = "CHÚC MỪNG! Bạn đã sống sót khỏi ngôi trường và sẵn sàng nhận bằng tốt nghiệp!";
-        footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
+        text.innerText = "CHÚC MỪNG! Bạn đã sống sót và sẵn sàng lên bục nhận bằng tốt nghiệp!";
+        // SỬA ONCLICK Ở ĐÂY:
+        footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="startBossBattle()">LÊN NHẬN BẰNG</button>';
         screen.style.display = 'flex';
         return;
-    } else if (type === "plot_twist") {
+    }
+     else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
         text.innerText = "Mày nghĩ chỉ đến vậy thôi sao? Thật sự nghĩ mình có thể thoát khỏi đây sao";
         footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI TỪ ĐẦU (KIẾP NÀY BỎ)</button>';
