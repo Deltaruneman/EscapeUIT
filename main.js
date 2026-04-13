@@ -87,7 +87,7 @@ function isColliding(x, y, size, rX, rY) {
 const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
-    if (isPaused && (e.code === 'KeyJ'||e.code === 'MouseLeft')) handleNextStory();
+    if (isPaused && (e.code === 'KeyJ'||e.code === 'Enter')) handleNextStory();
 };
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
