@@ -10,7 +10,7 @@ let deathCount = 0;
 let currentRoomX = 0;
 let currentRoomY = 0;
 
-const player = { x: 400, y: 300, size: 25, speed: 2 };
+const player = { x: 400, y: 300, size: 25, speed: 3 };
 
 // Khởi tạo đối tượng Enemy từ class đã tách
 const theNemesis = new Enemy(50, 50, 2.5);
@@ -43,7 +43,7 @@ function showStoryScreen(type) {
         return;
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
-        text.innerText = "PLOT TWIST: Tấm bằng UIT chỉ là khởi đầu. Kẻ thù bám theo bạn thực chất là DEADLINE CÔNG SỞ, CƠM ÁO GẠO TIỀN VÀ BẠN SẼ KHÔNG BAO GIỜ THOÁT ĐƯỢC!!!";
+        text.innerText = "Mày nghĩ chỉ đến vậy thôi sao? Thật sự nghĩ mình có thể thoát khỏi đây sao";
         footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI TỪ ĐẦU (KIẾP NÀY BỎ)</button>';
         screen.style.display = 'flex';
         return;
@@ -122,7 +122,9 @@ function triggerJumpscare() {
 
 function update() {
     if (!gameRunning || isPaused) return;
-
+if(keysHeld['shiftLeft'] || keysHeld['shiftRight']){ {      
+        speedMultiplier = 1.5;
+    }
     let nx = player.x, ny = player.y;
     if (keysPressed['KeyW'] || keysPressed['ArrowUp']) ny -= player.speed;
     if (keysPressed['KeyS'] || keysPressed['ArrowDown']) ny += player.speed;
