@@ -36,7 +36,7 @@ function showStoryScreen(type) {
         footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI</button>';
         screen.style.display = 'flex';
         return;
-    } else if (type === "ending_good") {
+    }  else if (type === "ending_good") {
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
         text.innerText = "CHÚC MỪNG! Bạn đã sống sót khỏi ngôi trường và sẵn sàng nhận bằng tốt nghiệp!";
         footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
@@ -220,3 +220,117 @@ theNemesis.savePosition(); // Save enemy position at the start or key moments
 window.onload = () => {
     theNemesis.savePosition();
 };
+// --- HỆ THỐNG BOSS FIGHT DELTARUNE STYLE ---
+let battleHP = 100;
+let bossHP = 200;
+let isPlayerTurn = false;
+
+function startBossBattle() {
+    // Ẩn màn hình cốt truyện và dừng game chính
+    document.getElementById('story-screen').style.display = 'none';
+    isPaused = true;
+    gameRunning = false;
+    
+    // Khởi tạo chỉ số
+    battleHP = 100;
+    bossHP = 200;
+    
+    // Hiện UI Battle
+    const battleScreen = document.getElementById('battle-screen');
+    battleScreen.style.display = 'flex';
+    
+    updateBattleUI();
+    typeDialog("* BOSS CUỐI CÙNG XUẤT HIỆN! Hắn sẽ không để bạn ra trường dễ dàng vậy đâu.");
+    
+    // Đợi 2s trước khi cho player đánh
+    setTimeout(() => {
+        typeDialog("* Lượt của bạn!");
+        isPlayerTurn = true;
+    }, 2500);
+}
+
+function updateBattleUI() {
+    document.getElementById('player-hp').innerText = battleHP;
+    document.getElementById('boss-hp').innerText = bossHP;
+}
+
+// Hiệu ứng gõ chữ từng ký tự
+function typeDialog(text) {
+    const dialogBox = document.getElementById('battle-dialog');
+    dialogBox.innerText = "";
+    let i = 0;
+    let speed = 25; // Tốc độ gõ
+    
+    function typeWriter() {
+        if (i < text.length) {
+            dialogBox.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        }
+    }
+    typeWriter();
+}
+
+// Hàm xử lý nút bấm của người chơi
+function battleAction(action) {
+    if (!isPlayerTurn) return;
+    isPlayerTurn = false; // Khóa lượt
+
+    if (action === 'FIGHT') {
+        let dmg = Math.floor(Math.random() * 20) + 15; // Sát thương 15 - 34
+        bossHP -= dmg;
+        typeDialog(`* Bạn ném đống Assignment vào mặt Boss! Hắn mất ${dmg} HP.`);
+    } 
+    else if (action === 'ACT') {
+        typeDialog(`* Bạn xin xỏ điểm liệt... Boss lườm bạn một cách khinh bỉ.`);
+    } 
+    else if (action === 'ITEM') {
+        let heal = 40;
+        battleHP = Math.min(100, battleHP + heal);
+        typeDialog(`* Bạn uống 1 lon Bò Húc! Hồi phục ${heal} HP.`);
+    } 
+    else if (action === 'SPARE') {
+        typeDialog(`* Bạn cố gắng thương lượng... NHƯNG HẮN TỪ CHỐI SPARE!`);
+    }
+
+    updateBattleUI();
+
+    // Kiểm tra Boss chết chưa
+    if (bossHP <= 0) {
+        setTimeout(() => {
+            typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
+            setTimeout(() => {
+                alert("CHÚC MỪNG! CHẾ ĐỘ TRUE ENDING ĐÃ ĐƯỢC MỞ KHÓA!");
+                location.reload(); 
+            }, 3000);
+        }, 2000);
+        return;
+    }
+
+    // Chuyển sang lượt của Boss sau 2 giây
+    setTimeout(bossTurn, 2500);
+}
+
+// Lượt của quái vật tấn công
+function bossTurn() {
+    let dmg = Math.floor(Math.random() * 20) + 15;
+    battleHP -= dmg;
+    
+    typeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
+    updateBattleUI();
+
+    // Kiểm tra Player chết chưa
+    if (battleHP <= 0) {
+        setTimeout(() => {
+            document.getElementById('battle-screen').style.display = 'none';
+            showStoryScreen('ending_bad'); // Dùng lại bad ending có sẵn của bạn
+        }, 2000);
+        return;
+    }
+
+    // Trả lại lượt cho player
+    setTimeout(() => {
+        typeDialog("* Lượt của bạn! Chọn hành động đi.");
+        isPlayerTurn = true;
+    }, 2500);
+}

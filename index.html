@@ -39,6 +39,29 @@
     <div id="joystick-base"></div>
     <div id="joystick-stick"></div>
 </div>
+<div id="battle-screen" class="full-overlay">
+    <div class="battle-scene">
+        <img id="boss-img" src="nomon.png" alt="Final Boss">
+    </div>
+    
+    <div class="battle-ui-container">
+        <div class="battle-dialog" id="battle-dialog">
+            * "Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?"
+        </div>
+        
+        <div class="battle-stats">
+            <span>BẠN - HP: <span id="player-hp" style="color: lime;">100</span>/100</span>
+            <span>GIÁM THỊ - HP: <span id="boss-hp" style="color: red;">200</span>/200</span>
+        </div>
+        
+        <div class="battle-menu">
+            <button onclick="battleAction('FIGHT')">⚔️ FIGHT</button>
+            <button onclick="battleAction('ACT')">🗣️ ACT</button>
+            <button onclick="battleAction('ITEM')">🎒 ITEM</button>
+            <button onclick="battleAction('SPARE')">❌ SPARE</button>
+        </div>
+    </div>
+</div>
 <script src="data.js"></script>
 <script src="enemy.js"></script>
 <script src="main.js"></script>
