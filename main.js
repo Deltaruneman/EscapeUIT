@@ -9,7 +9,7 @@ let keysFound = 0;
 let deathCount = 0;
 let currentRoomX = 0;
 let currentRoomY = 0;
-
+let hiddenItemsFound = 0;
 const player = { x: 400, y: 300, size: 25, speed: 3 };
 
 // Khởi tạo đối tượng Enemy từ class đã tách
@@ -30,6 +30,10 @@ function showStoryScreen(type) {
     let data;
     if (type === "intro") data = storyScenes[currentStoryIdx];
     else if (type === "key") data = keyCollectScenes[keysFound - 1];
+    else if (type === "hidden_item") {
+        let index = Math.min(hiddenItemsFound - 1, hiddenItemScenes.length - 1);
+        data = hiddenItemScenes[index];
+    }
     else if (type === "ending_bad") {
         img.src = "https://images.unsplash.com/photo-1601513445498-5dbffc8d5d40?q=80&w=800";
         text.innerText = "GAME OVER - BẠN ĐÃ BỊ KẸT LẠI MÃI MÃI TẠI UIT";
@@ -72,6 +76,10 @@ function handleNextStory() {
             document.getElementById('story-screen').style.display = 'none';
             isPaused = false;
         }
+    }
+    else if (storyMode === "hidden_item") {
+        document.getElementById('story-screen').style.display = 'none';
+        isPaused = false;
     }
 }
 
@@ -144,7 +152,13 @@ function update() {
         document.getElementById('key-count').innerText = keysFound;
         showStoryScreen("key"); 
     }
-
+if (map[pr] && map[pr][pc] === 5) {
+        map[pr][pc] = 0;
+        hiddenItemsFound++;
+        const countUI = document.getElementById('item-count');
+        if (countUI) countUI.innerText = hiddenItemsFound;
+        showStoryScreen("hidden_item"); 
+    }
     // Gọi logic update của Enemy
     theNemesis.update(player, currentRoomX, currentRoomY, keysFound);
 
@@ -169,6 +183,7 @@ function draw() {
         for(let c=0; c<COLS; c++){
             if(map[r][c]===1) { ctx.fillStyle="#333"; ctx.fillRect(c*50, r*50, 50, 50); }
             if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
+            if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
         }
     }
     
@@ -273,7 +288,7 @@ function typeDialog(text) {
     const dialogBox = document.getElementById('battle-dialog');
     dialogBox.innerText = "";
     let i = 0;
-    let speed = 25; 
+    let speed = 100; 
     
     function typeWriter() {
         if (i < text.length) {
@@ -284,20 +299,27 @@ function typeDialog(text) {
     }
     typeWriter();
 }
-
+let hopeisused = false;
 // Hàm xử lý nút bấm
 window.battleAction = function(action) {
     if (!isPlayerTurn) return;
-    isPlayerTurn = false; 
+   
 
     if (action === 'FIGHT') {
         let dmg = Math.floor(Math.random() * 20) + 15; 
         bossHP -= dmg;
         typeDialog(`* Dùng chính sự quyết tâm của mình, bạn gây ra ${dmg} HP.`);
     } 
-    else if (action === 'HOPE') {
-        typeDialog(`* Bạn cố gắn cầu cứu,..... nhưng không có ai đến.`);
-    } 
+  else if (action === 'HOPE') {
+        if (hiddenItemsFound > 0&&!hopeisused) {
+            let dmg = hiddenItemsFound * 10;
+            bossHP -= dmg;
+            hopeisused = true;
+            typeDialog(`* Từ ${hiddenItemsFound} mảnh ký ức. UIT cộng hưởng với bạn tung đòn tất sát. Boss nhận ${dmg} sát thương!`);
+        } else {
+            typeDialog(`* Bạn cố gắng cầu cứu,..... nhưng không có ai đến (Bạn chưa thu thập mảnh Hy Vọng nào).`);
+        }
+    }
     else if (action === 'DREAM') {
         let heal = 40;
         battleHP = Math.min(100, battleHP + heal);
@@ -320,12 +342,12 @@ window.battleAction = function(action) {
         }, 2000);
         return;
     }
-
+ isPlayerTurn = false; 
     setTimeout(bossTurn, 2500);
 };
 
 function bossTurn() {
-    let dmg = Math.floor(Math.random() * 20) + 15;
+    let dmg = Math.floor(Math.random() * 25) + 20;
     battleHP -= dmg;
     
     typeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
