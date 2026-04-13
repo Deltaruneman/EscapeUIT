@@ -17,3 +17,38 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 
 #jumpscare-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 500; }
 #jumpscare-img { width: 100%; height: 100%; object-fit: cover; }
+/* Joystick UI */
+#joystick-container {
+    position: fixed;
+    bottom: 40px;
+    left: 40px;
+    width: 120px;
+    height: 120px;
+    z-index: 100;
+    display: none; /* Chỉ hiện trên thiết bị cảm ứng */
+    touch-action: none;
+}
+
+#joystick-base {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+}
+
+#joystick-stick {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 0, 0, 0.5);
+    border-radius: 50%;
+    top: 35px;
+    left: 35px;
+    transition: transform 0.1s ease-out;
+}
+
+/* Hiện joystick khi là thiết bị cảm ứng */
+@media (pointer: coarse) {
+    #joystick-container { display: block; }
+}
