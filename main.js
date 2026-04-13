@@ -45,7 +45,7 @@ function showStoryScreen(type) {
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
         text.innerText = "Mày nghĩ chỉ đến vậy thôi sao? Thật sự nghĩ mình có thể thoát khỏi đây sao";
-        footer.innerHTML = '<button class="retry-btn" onclick="window.startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
+        footer.innerHTML = '<button class="retry-btn" onclick="startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
         screen.style.display = 'flex';
         return;
     }
