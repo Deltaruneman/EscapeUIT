@@ -108,4 +108,20 @@ class Enemy {
         this.roomX = 0;
         this.roomY = 0;
     }
+
+    savePosition() {
+        this.savedX = this.x;
+        this.savedY = this.y;
+        this.savedRoomX = this.roomX;
+        this.savedRoomY = this.roomY;
+    }
+
+    respawn() {
+        if (this.savedX !== undefined && this.savedY !== undefined) {
+            this.x = this.savedX;
+            this.y = this.savedY;
+            this.roomX = this.savedRoomX;
+            this.roomY = this.savedRoomY;
+        }
+    }
 }

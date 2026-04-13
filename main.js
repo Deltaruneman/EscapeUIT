@@ -209,3 +209,14 @@ document.addEventListener('keydown', (event) => {
         }
     }
 });
+
+document.getElementById('respawn-btn').onclick = () => {
+    player.x = 400; // Reset player position
+    player.y = 300;
+    theNemesis.respawn(); // Restore enemy to its saved position
+    deathCount++;
+    isPaused = false;
+    gameRunning = true;
+};
+
+theNemesis.savePosition(); // Save enemy position at the start or key moments
