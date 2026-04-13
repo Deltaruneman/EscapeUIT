@@ -336,35 +336,3 @@ function bossTurn() {
         isPlayerTurn = true;
     }, 2500);
 }
-
-function showBattleScreen() {
-    isPaused = true;
-    gameRunning = false;
-
-    const battleScreen = document.getElementById('battle-screen');
-    if (!battleScreen) {
-        console.error('Battle screen element not found!');
-        return;
-    }
-
-    battleScreen.style.display = 'flex';
-
-    // Example content for the battle screen
-    battleScreen.innerHTML = `
-        <div class="battle-container">
-            <h1>Battle Start!</h1>
-            <p>Prepare to fight the Nemesis!</p>
-            <button onclick="startBattle()">Start Battle</button>
-        </div>
-    `;
-}
-
-function startBattle() {
-    const battleScreen = document.getElementById('battle-screen');
-    battleScreen.style.display = 'none';
-    isPaused = false;
-    gameRunning = true;
-
-    // Add battle logic here
-    console.log('Battle started!');
-}
