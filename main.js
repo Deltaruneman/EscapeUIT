@@ -293,18 +293,18 @@ window.battleAction = function(action) {
     if (action === 'FIGHT') {
         let dmg = Math.floor(Math.random() * 20) + 15; 
         bossHP -= dmg;
-        typeDialog(`* Bạn ném đống Assignment vào mặt Boss! Hắn mất ${dmg} HP.`);
+        typeDialog(`* Dùng chính sự quyết tâm của mình, bạn gây ra ${dmg} HP.`);
     } 
-    else if (action === 'ACT') {
-        typeDialog(`* Bạn xin xỏ điểm liệt... Boss lườm bạn một cách khinh bỉ.`);
+    else if (action === 'HOPE') {
+        typeDialog(`* Bạn cố gắn cầu cứu,..... nhưng không có ai đến.`);
     } 
-    else if (action === 'ITEM') {
+    else if (action === 'DREAM') {
         let heal = 40;
         battleHP = Math.min(100, battleHP + heal);
-        typeDialog(`* Bạn uống 1 lon Bò Húc! Hồi phục ${heal} HP.`);
+        typeDialog(`* UIT đang chúc phúc cho bạn, hồi lại ${heal} HP.`);
     } 
-    else if (action === 'SPARE') {
-        typeDialog(`* Bạn cố gắng thương lượng... NHƯNG HẮN TỪ CHỐI SPARE!`);
+    else if (action === 'ESCAPE') {
+        typeDialog(`* Bỏ cuộc ư?? nằm mơ đi, kẻ không đủ quyết tâm không đáng để tồn tại!`);
     }
 
     updateBattleUI();
