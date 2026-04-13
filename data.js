@@ -13,13 +13,6 @@ const keyCollectScenes = [
     { img: "https://static0.makeuseofimages.com/wordpress/wp-content/uploads/2014/09/stressed-coder.jpg", text: "Năm 3: Bạn đã kiệt sức, ngọn lửa nhiệt huyết của bạn đang dần vụt tắt. 'Nó' đã và đang khiến mọi thứ trở nên khó khăn hơn." },
     { img: "https://scontent.fsgn2-6.fna.fbcdn.net/v/t39.30808-6/567184589_1290914559741212_5950352786700967026_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=7b2446&_nc_eui2=AeHZ3yqPb3JvuH-03xldEEVz3TVpuxcJdMbdNWm7Fwl0xsTW9yyYbL3KozsXzChIpaprtNZ_q-cBRBI1XTwG3pAN&_nc_ohc=QH_2JoGvvRAQ7kNvwHY1LBB&_nc_oc=AdouaVlMVeV2PzSg-Ayq0QwlVjR4cFM86nebxQR-yOqjfmCzeg_r5ejVleAXjPJY4UrO27cGHmmYTXYZa2Vb1z3j&_nc_zt=23&_nc_ht=scontent.fsgn2-6.fna&_nc_gid=JhpkC_tpqy7VFcQREofu5w&_nc_ss=7a3a8&oh=00_Af0kdN7kfBnUQaABGpwSnG3rGxUnt8oVpxQA3Tg8TyViRA&oe=69E18E4D", text: "Năm thứ 4, đã năm thứ 4 rồi. Mày định bỏ cuộc ư. Thức dậy ngay đi!!" }
 ];
-
-const endingScenes = [
-    { img: "https://example.com/ending1.jpg", text: "Bạn đã vượt qua tất cả thử thách và tốt nghiệp thành công!" },
-    { img: "https://example.com/ending2.jpg", text: "Bạn đã thất bại, nhưng bài học này sẽ giúp bạn trưởng thành hơn." },
-    { img: "https://example.com/ending3.jpg", text: "Một kết thúc mở, tương lai của bạn vẫn đang chờ đợi." }
-];
-
 const maps = {
     "0,0": [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
