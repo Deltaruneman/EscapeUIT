@@ -25,6 +25,7 @@ function showStoryScreen(type) {
     const img = document.getElementById('story-img');
     const text = document.getElementById('story-text');
     const footer = document.getElementById('story-footer');
+    const pause = document.getElementById('pause-screen');
 
     let data;
     if (type === "intro") data = storyScenes[currentStoryIdx];
@@ -48,6 +49,7 @@ function showStoryScreen(type) {
         screen.style.display = 'flex';
         return;
     }
+
 
     img.src = data.img;
     text.innerText = data.text;
@@ -158,12 +160,8 @@ function update() {
         }
     }
 }
-function pauseGame() {
-    if(keysPressed['ESCAPE']) {
-    isPaused = true;
-    document.getElementById('pause-screen').style.display = 'flex';
-}
-}
+
+
 function resumeGame() {
     if(keysPressed['ESCAPE']) {
     isPaused = false;
@@ -199,3 +197,15 @@ function loop() {
 
 // Chạy vòng lặp
 loop();
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        isPaused = !isPaused; // Toggle pause state
+        const pauseScreen = document.getElementById('pause-screen');
+        if (isPaused) {
+            pauseScreen.style.display = 'flex'; // Show pause screen
+        } else {
+            pauseScreen.style.display = 'none'; // Hide pause screen
+        }
+    }
+});
