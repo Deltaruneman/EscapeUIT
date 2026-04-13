@@ -284,40 +284,68 @@ function updateBattleUI() {
 }
 
 // Hiệu ứng gõ chữ
-function typeDialog(text) {
-    const dialogBox = document.getElementById('battle-dialog');
-    dialogBox.innerText = "";
-    let i = 0;
-    let speed = 100; 
-    
-    function typeWriter() {
-        if (i < text.length) {
-            dialogBox.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typeWriter, speed);
-        }
+// Biến toàn cục để lưu trữ bộ đếm thời gian, giúp hủy tiến trình cũ nếu có tiến trình mới
+let currentTypingTimer = null;
+
+/**
+ * Hiển thị hiệu ứng gõ chữ từng ký tự.
+ * @param {string} text - Nội dung văn bản cần hiển thị.
+ * @param {Object} options - Các tùy chọn bổ sung (tốc độ, id phần tử).
+ * @returns {Promise} - Trả về Promise để có thể chờ (await) khi gõ xong.
+ */
+function typeDialog(text, options = {}) {
+    const { speed = 50, elementId = 'battle-dialog' } = options;
+    const dialogBox = document.getElementById(elementId);
+
+    // Kiểm tra an toàn: Nếu phần tử không tồn tại thì dừng hàm
+    if (!dialogBox) {
+        console.warn(`[typeDialog] Không tìm thấy phần tử có ID '${elementId}'`);
+        return Promise.resolve(); 
     }
-    typeWriter();
+
+    // Nếu đang có một tiến trình gõ chữ khác đang chạy, hãy dừng nó lại
+    if (currentTypingTimer) {
+        clearTimeout(currentTypingTimer);
+    }
+
+    // Reset nội dung. Dùng textContent an toàn và nhanh hơn innerHTML
+    dialogBox.textContent = "";
+    let i = 0;
+
+    return new Promise((resolve) => {
+        function typeWriter() {
+            if (i < text.length) {
+                dialogBox.textContent += text[i];
+                i++;
+                currentTypingTimer = setTimeout(typeWriter, speed);
+            } else {
+                // Đã gõ xong
+                currentTypingTimer = null;
+                resolve(true); 
+            }
+        }
+        typeWriter();
+    });
 }
 let hopeisused = false;
 // Hàm xử lý nút bấm
-window.battleAction = function(action) {
+window.battleAction = async function(action) {
     if (!isPlayerTurn) return;
    
 
     if (action === 'FIGHT') {
         let dmg = Math.floor(Math.random() * 20) + 15; 
         bossHP -= dmg;
-        typeDialog(`* Dùng chính sự quyết tâm của mình, bạn gây ra ${dmg} HP.`);
+        await typeDialog(`* Dùng chính sự quyết tâm của mình, bạn gây ra ${dmg} HP.`);
     } 
   else if (action === 'HOPE') {
         if (hiddenItemsFound > 0&&!hopeisused) {
             let dmg = hiddenItemsFound * 10;
             bossHP -= dmg;
             hopeisused = true;
-            typeDialog(`* Từ ${hiddenItemsFound} mảnh ký ức. UIT cộng hưởng với bạn tung đòn tất sát. Boss nhận ${dmg} sát thương!`);
+            await typeDialog(`* Từ ${hiddenItemsFound} mảnh ký ức. UIT cộng hưởng với bạn tung đòn tất sát. Boss nhận ${dmg} sát thương!`);
         } else {
-            typeDialog(`* Bạn cố gắng cầu cứu,..... nhưng không có ai đến (Bạn chưa thu thập mảnh Hy Vọng nào).`);
+            await typeDialog(`* Bạn cố gắng cầu cứu,..... nhưng không có ai đến (Bạn chưa thu thập mảnh Hy Vọng nào).`);
         }
     }
     else if (action === 'DREAM') {
@@ -326,7 +354,7 @@ window.battleAction = function(action) {
         typeDialog(`* UIT đang chúc phúc cho bạn, hồi lại ${heal} HP.`);
     } 
     else if (action === 'ESCAPE') {
-        typeDialog(`* Bỏ cuộc ư?? nằm mơ đi, kẻ không đủ quyết tâm không đáng để tồn tại!`);
+       await typeDialog(`* Bỏ cuộc ư?? nằm mơ đi, kẻ không đủ quyết tâm không đáng để tồn tại!`);
     }
 
     updateBattleUI();
@@ -334,7 +362,7 @@ window.battleAction = function(action) {
     // Kiểm tra Boss chết
     if (bossHP <= 0) {
         setTimeout(() => {
-            typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
+             typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
             setTimeout(() => {
                 alert("CHÚC MỪNG! CHẾ ĐỘ TRUE ENDING ĐÃ ĐƯỢC MỞ KHÓA!");
                 location.reload(); 
@@ -361,8 +389,8 @@ function bossTurn() {
         return;
     }
 
-    setTimeout(() => {
-        typeDialog("* Lượt của bạn! Chọn hành động đi.");
+    setTimeout(async () => {
+        await typeDialog("* Lượt của bạn! Chọn hành động đi.");
         isPlayerTurn = true;
     }, 2500);
 }
