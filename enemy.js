@@ -1,5 +1,5 @@
 class Enemy {
-    constructor(startX, startY, 0.5*baseSpeed) {
+    constructor(startX, startY, baseSpeed) {
         this.x = startX;
         this.y = startY;
         this.roomX = 0;
