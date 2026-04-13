@@ -104,7 +104,6 @@ function triggerJumpscare() {
     gameRunning = false;
     document.getElementById('jumpscare-overlay').style.display = 'block';
     
-    // Nếu không có hình, nó vẫn hiện nền đen giật mình
     document.getElementById('jumpscare-img').src = "nomon.png"; 
 
     setTimeout(() => {
@@ -112,11 +111,7 @@ function triggerJumpscare() {
         if (deathCount >= 20) showStoryScreen("ending_bad");
         else {
             player.x = 400; player.y = 300;
-            currentRoomX = 0; currentRoomY = 0;
-            
-            // Reset Enemy bằng hàm trong OOP
-            theNemesis.reset(50, 50);
-            
+            currentRoomX = 0; currentRoomY = 0; 
             gameRunning = true;
         }
     }, 1500);
