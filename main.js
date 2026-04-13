@@ -87,7 +87,7 @@ function isColliding(x, y, size, rX, rY) {
 const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
-    if (isPaused && e.code === 'KeyJ') handleNextStory();
+    if (isPaused && (e.code === 'KeyJ'||e.code === 'MouseLeft')) handleNextStory();
 };
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
@@ -186,64 +186,6 @@ function loop() {
     draw(); 
     requestAnimationFrame(loop); 
 }
-// Biến lưu trạng thái joystick
-let joystickActive = false;
-let joystickDir = { x: 0, y: 0 };
 
-// Click chuột để qua hội thoại
-window.addEventListener('mousedown', () => {
-    if (isPaused && (storyMode === "intro" || storyMode === "key")) {
-        nextStory(); // Gọi hàm chuyển cảnh story
-    }
-});
-
-// Phím ESC để Pause và J để qua story
-window.addEventListener('keydown', (e) => {
-    if (e.key === "Escape" || e.keyCode === 27) {
-        togglePause();
-    }
-    if (e.key === "j" || e.key === "J") {
-        if (isPaused && (storyMode === "intro" || storyMode === "key")) {
-            nextStory();
-        }
-    }
-});
-
-function togglePause() {
-    if (!gameRunning) return;
-    isPaused = !isPaused;
-    document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
-}
-
-const stick = document.getElementById('joystick-stick');
-const container = document.getElementById('joystick-container');
-const base = document.getElementById('joystick-base');
-
-container.addEventListener('touchstart', handleTouch);
-container.addEventListener('touchmove', handleTouch);
-container.addEventListener('touchend', () => {
-    joystickActive = false;
-    joystickDir = { x: 0, y: 0 };
-    stick.style.transform = `translate(0px, 0px)`;
-});
-
-function handleTouch(e) {
-    e.preventDefault();
-    joystickActive = true;
-    const touch = e.touches[0];
-    const rect = base.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    let dx = touch.clientX - centerX;
-    let dy = touch.clientY - centerY;
-    const distance = Math.min(Math.hypot(dx, dy), 50); // Giới hạn stick trong vòng 50px
-    const angle = Math.atan2(dy, dx);
-
-    joystickDir.x = Math.cos(angle) * (distance / 50);
-    joystickDir.y = Math.sin(angle) * (distance / 50);
-
-    stick.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
-}
 // Chạy vòng lặp
 loop();
