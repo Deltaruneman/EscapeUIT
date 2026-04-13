@@ -47,6 +47,14 @@ function showStoryScreen(type) {
         footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI TỪ ĐẦU (KIẾP NÀY BỎ)</button>';
         screen.style.display = 'flex';
         return;
+    } else if (type === "ending") {
+        const endingIdx = keysFound === 0 ? 1 : (deathCount > 0 ? 2 : 0); // Example logic for selecting an ending
+        data = endingScenes[endingIdx];
+        img.src = data.img;
+        text.innerText = data.text;
+        footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI</button>';
+        screen.style.display = 'flex';
+        return;
     }
 
     img.src = data.img;
