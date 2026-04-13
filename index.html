@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Horror Dungeon - UIT Edition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="ui">
+    Deaths: <span id="death-count" style="color:red;">0</span> / 20 &nbsp;&nbsp;|&nbsp;&nbsp; 
+    Keys: <span id="key-count" style="color:yellow;">0</span> / 4
+</div>
+
+<div id="start-screen" class="full-overlay">
+    <h1 style="font-size: 4rem; color: red;">DUNGEON ESCAPE</h1>
+    <p>Tìm 4 chìa khóa màu Vàng. Tránh xa kẻ địch màu Đỏ.</p>
+    <button id="start-btn">CHƠI GAME</button>
+</div>
+
+<div id="story-screen" class="full-overlay">
+    <img id="story-img" src="" alt="Story">
+    <div id="story-text" class="text-content"></div>
+    <div id="story-footer" class="hint">(Bấm phím [J] để tiếp tục)</div>
+</div>
+
+<div id="jumpscare-overlay">
+    <img id="jumpscare-img" src="">
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script src="js/data.js"></script>
+<script src="js/enemy.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

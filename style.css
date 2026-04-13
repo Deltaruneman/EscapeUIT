@@ -1,0 +1,19 @@
+body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #222; }
+
+#ui { position: fixed; top: 10px; left: 20px; z-index: 50; font-size: 1.2rem; font-weight: bold; text-shadow: 2px 2px 4px #000; }
+
+.full-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: black; z-index: 200; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+}
+.full-overlay img { max-width: 80%; max-height: 60vh; border: 2px solid #333; }
+.full-overlay .text-content { font-size: 1.8rem; margin: 30px 0; color: #fff; max-width: 80%; }
+.hint { color: #666; font-size: 1.2rem; margin-top: 10px; }
+
+#start-screen { display: flex; z-index: 300; background: rgba(0,0,0,0.95); }
+#start-btn, .retry-btn { padding: 15px 30px; font-size: 1.5rem; background: #440000; color: white; border: 2px solid red; cursor: pointer; }
+#start-btn:hover, .retry-btn:hover { background: #ff0000; }
+
+#jumpscare-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 500; }
+#jumpscare-img { width: 100%; height: 100%; object-fit: cover; }
