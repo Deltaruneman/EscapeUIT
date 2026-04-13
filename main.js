@@ -220,3 +220,8 @@ document.getElementById('respawn-btn').onclick = () => {
 };
 
 theNemesis.savePosition(); // Save enemy position at the start or key moments
+
+// Save the enemy's position when the game starts
+window.onload = () => {
+    theNemesis.savePosition();
+};
