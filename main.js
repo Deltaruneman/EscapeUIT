@@ -45,7 +45,7 @@ function showStoryScreen(type) {
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
         text.innerText = "Mày nghĩ chỉ đến vậy thôi sao? Thật sự nghĩ mình có thể thoát khỏi đây sao";
-        footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI TỪ ĐẦU (KIẾP NÀY BỎ)</button>';
+        footer.innerHTML = '<button class="retry-btn" onclick="window.startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
         screen.style.display = 'flex';
         return;
     }
@@ -220,3 +220,115 @@ theNemesis.savePosition(); // Save enemy position at the start or key moments
 window.onload = () => {
     theNemesis.savePosition();
 };
+// --- HỆ THỐNG BOSS FIGHT DELTARUNE STYLE CHẮC CHẮN CHẠY ---
+let battleHP = 100;
+let bossHP = 200;
+let isPlayerTurn = false;
+
+window.startBossBattle = function() {
+    console.log("Boss battle bắt đầu!"); // Để bạn kiểm tra trong F12 (Console) xem nó có chạy không
+    
+    // Ẩn màn hình cốt truyện và dừng game chính
+    document.getElementById('story-screen').style.display = 'none';
+    isPaused = true;
+    gameRunning = false;
+    
+    // Khởi tạo chỉ số
+    battleHP = 100;
+    bossHP = 200;
+    
+    // Hiện UI Battle (Ghi đè display thành flex)
+    const battleScreen = document.getElementById('battle-screen');
+    battleScreen.style.setProperty("display", "flex", "important");
+    
+    updateBattleUI();
+    typeDialog("* BOSS CUỐI CÙNG XUẤT HIỆN! Hắn sẽ không để bạn ra trường dễ dàng vậy đâu.");
+    
+    // Đợi 2.5s trước khi cho player đánh
+    setTimeout(() => {
+        typeDialog("* Lượt của bạn!");
+        isPlayerTurn = true;
+    }, 2500);
+};
+
+function updateBattleUI() {
+    document.getElementById('player-hp').innerText = battleHP;
+    document.getElementById('boss-hp').innerText = bossHP;
+}
+
+// Hiệu ứng gõ chữ
+function typeDialog(text) {
+    const dialogBox = document.getElementById('battle-dialog');
+    dialogBox.innerText = "";
+    let i = 0;
+    let speed = 25; 
+    
+    function typeWriter() {
+        if (i < text.length) {
+            dialogBox.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        }
+    }
+    typeWriter();
+}
+
+// Hàm xử lý nút bấm
+window.battleAction = function(action) {
+    if (!isPlayerTurn) return;
+    isPlayerTurn = false; 
+
+    if (action === 'FIGHT') {
+        let dmg = Math.floor(Math.random() * 20) + 15; 
+        bossHP -= dmg;
+        typeDialog(`* Bạn ném đống Assignment vào mặt Boss! Hắn mất ${dmg} HP.`);
+    } 
+    else if (action === 'ACT') {
+        typeDialog(`* Bạn xin xỏ điểm liệt... Boss lườm bạn một cách khinh bỉ.`);
+    } 
+    else if (action === 'ITEM') {
+        let heal = 40;
+        battleHP = Math.min(100, battleHP + heal);
+        typeDialog(`* Bạn uống 1 lon Bò Húc! Hồi phục ${heal} HP.`);
+    } 
+    else if (action === 'SPARE') {
+        typeDialog(`* Bạn cố gắng thương lượng... NHƯNG HẮN TỪ CHỐI SPARE!`);
+    }
+
+    updateBattleUI();
+
+    // Kiểm tra Boss chết
+    if (bossHP <= 0) {
+        setTimeout(() => {
+            typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
+            setTimeout(() => {
+                alert("CHÚC MỪNG! CHẾ ĐỘ TRUE ENDING ĐÃ ĐƯỢC MỞ KHÓA!");
+                location.reload(); 
+            }, 3000);
+        }, 2000);
+        return;
+    }
+
+    setTimeout(bossTurn, 2500);
+};
+
+function bossTurn() {
+    let dmg = Math.floor(Math.random() * 20) + 15;
+    battleHP -= dmg;
+    
+    typeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
+    updateBattleUI();
+
+    if (battleHP <= 0) {
+        setTimeout(() => {
+            document.getElementById('battle-screen').style.display = 'none';
+            showStoryScreen('ending_bad'); 
+        }, 2000);
+        return;
+    }
+
+    setTimeout(() => {
+        typeDialog("* Lượt của bạn! Chọn hành động đi.");
+        isPlayerTurn = true;
+    }, 2500);
+}
