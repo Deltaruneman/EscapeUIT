@@ -226,25 +226,37 @@ let bossHP = 200;
 let isPlayerTurn = false;
 
 window.startBossBattle = function() {
-    console.log("Boss battle bắt đầu!"); // Để bạn kiểm tra trong F12 (Console) xem nó có chạy không
-    
-    // Ẩn màn hình cốt truyện và dừng game chính
-    document.getElementById('story-screen').style.display = 'none';
+    console.log("Boss battle bắt đầu!"); // Debug log
+
+    // Check if story-screen exists and hide it
+    const storyScreen = document.getElementById('story-screen');
+    if (storyScreen) {
+        storyScreen.style.display = 'none';
+        console.log("story-screen hidden");
+    } else {
+        console.error("story-screen not found");
+    }
+
     isPaused = true;
     gameRunning = false;
-    
-    // Khởi tạo chỉ số
+
+    // Initialize battle stats
     battleHP = 100;
     bossHP = 200;
-    
-    // Hiện UI Battle (Ghi đè display thành flex)
+
+    // Check if battle-screen exists and show it
     const battleScreen = document.getElementById('battle-screen');
-    battleScreen.style.setProperty("display", "flex", "important");
-    
+    if (battleScreen) {
+        battleScreen.style.setProperty("display", "flex", "important");
+        console.log("battle-screen displayed");
+    } else {
+        console.error("battle-screen not found");
+    }
+
     updateBattleUI();
     typeDialog("* BOSS CUỐI CÙNG XUẤT HIỆN! Hắn sẽ không để bạn ra trường dễ dàng vậy đâu.");
-    
-    // Đợi 2.5s trước khi cho player đánh
+
+    // Wait 2.5s before allowing player to act
     setTimeout(() => {
         typeDialog("* Lượt của bạn!");
         isPlayerTurn = true;
