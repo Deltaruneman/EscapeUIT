@@ -116,7 +116,7 @@ function triggerJumpscare() {
 
     setTimeout(() => {
         document.getElementById('jumpscare-overlay').style.display = 'none';
-        if (deathCount >= 20) showStoryScreen("ending_bad");
+        if (deathCount == 5) showStoryScreen("ending_bad");
         else {
             player.x = 400; player.y = 300;
             currentRoomX = 0; currentRoomY = 0; 
@@ -361,19 +361,24 @@ window.battleAction = async function(action) {
     
 
     updateBattleUI();
-    if (bossHP <= 0) {
-        setTimeout(async   () => {
+  if (bossHP <= 0) {
+        setTimeout(async () => {
             await typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
             setTimeout(() => {
                 alert("CHÚC MỪNG! CHẾ ĐỘ TRUE ENDING ĐÃ ĐƯỢC MỞ KHÓA!");
                 location.reload(); 
             }, 3000);
-            return;
         }, 2000);
+        
+        // Phải đặt return ở ĐÂY để ngắt luôn hàm battleAction, 
+        // không cho code chạy tiếp xuống hàm bossTurn ở dưới nữa
+        return; 
+    } // <--- ĐÓNG NGOẶC KHỐI IF TẠI ĐÂY
 
+    // Nếu boss chưa chết (code vượt qua được lệnh return phía trên)
+    // thì mới gọi hàm lượt của boss
     setTimeout(bossTurn, 2500); 
 };
-}
 
 async function bossTurn() {
     let dmg = Math.floor(Math.random() * 25) + 20;
