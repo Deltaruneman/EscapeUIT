@@ -13,7 +13,7 @@ let hiddenItemsFound = 0;
 const player = { x: 400, y: 300, size: 25, speed: 3 };
 
 // Khởi tạo đối tượng Enemy từ class đã tách
-const theNemesis = new Enemy(50, 50, 2.5);
+const theNemesis = new Enemy(50, 50, 1.5); // Tốc độ cơ bản của Enemy là 1.5
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
