@@ -356,7 +356,7 @@ window.battleAction = async function(action) {
     else if (action === 'ESCAPE') {
        await typeDialog(`* Bỏ cuộc ư?? nằm mơ đi, kẻ không đủ quyết tâm không đáng để tồn tại!`);
     }
-    }
+    
 
     updateBattleUI();
     if (bossHP <= 0) {
@@ -371,12 +371,14 @@ window.battleAction = async function(action) {
 
     setTimeout(bossTurn, 2500); 
 };
+}
 
 async function bossTurn() {
     let dmg = Math.floor(Math.random() * 25) + 20;
     battleHP -= dmg;
     
-    awaittypeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`);
+    // LỖI 3: Đã thêm khoảng trắng giữa await và typeDialog
+    await typeDialog(`* Boss giáng xuống 1 đòn "Trượt Môn"! Bạn mất ${dmg} HP.`); 
     updateBattleUI();
 
     if (battleHP <= 0) {
