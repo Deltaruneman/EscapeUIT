@@ -133,9 +133,9 @@ function update() {
     if (keysPressed['KeyS'] || keysPressed['ArrowDown']) ny += player.speed;
     if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) nx -= player.speed;
     if (keysPressed['KeyD'] || keysPressed['ArrowRight']) nx += player.speed;
-    if (keysPressed['KeyP']) {
+    if (keysPressed['KeyP']) 
    showStoryScreen("ending_good");
-    }
+    
 
     if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
     if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
