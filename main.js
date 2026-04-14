@@ -134,7 +134,7 @@ function update() {
     if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) nx -= player.speed;
     if (keysPressed['KeyD'] || keysPressed['ArrowRight']) nx += player.speed;
     if (keysPressed['KeyP']) {
-   keysFound = 4;
+   showStoryScreen("ending_good");
     }
 
     if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
