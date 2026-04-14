@@ -10,9 +10,9 @@ let deathCount = 0;
 let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
+let hopeCount = 0
 const player = { x: 400, y: 300, size: 25, speed: 3 };
 
-// Khởi tạo đối tượng Enemy từ class đã tách
 const enemies = [
     new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
@@ -238,12 +238,28 @@ document.getElementById('respawn-btn').onclick = () => {
     isPaused = false;
     gameRunning = true;
 };
+function canMoveTo(nextX, nextY) {
+    let col = Math.floor(nextX / TILE_SIZE);
+    let row = Math.floor(nextY / TILE_SIZE);
+    let map = getMap(currentRoomX, currentRoomY);
+    let tile = map[row][col];
 
-// Save the enemies' positions when the game starts
+    if (tile === 1) return false; 
+    
+    if (tile === 4) {
+        if (hopeCount > 5) {
+            return true; 
+        } else {
+            console.log("Bạn cần trên 5 điểm Hope để vào phòng an toàn!");
+            return false; 
+        }
+    }
+    return true;
+}
+
 window.onload = () => {
     enemies.forEach(enemy => enemy.savePosition());
 };
-// --- HỆ THỐNG BOSS FIGHT DELTARUNE STYLE CHẮC CHẮN CHẠY ---
 let battleHP = 100;
 let bossHP = 200;
 let isPlayerTurn = false;
