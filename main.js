@@ -149,6 +149,7 @@ function update() {
     if (map[pr] && map[pr][pc] === 3) {
         map[pr][pc] = 0;
         keysFound++;
+        const countUI = document.getElementById('key-count');   
         document.getElementById('key-count').innerText = keysFound;
         if (countUI) countUI.innerText = keysFound;
         showStoryScreen("key"); 
