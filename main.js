@@ -13,7 +13,12 @@ let hiddenItemsFound = 0;
 const player = { x: 400, y: 300, size: 25, speed: 3 };
 
 // Khởi tạo đối tượng Enemy từ class đã tách
-const theNemesis = new Enemy(50, 50, 2); // Tốc độ cơ bản của Enemy là 1.5
+const enemies = [
+    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
+    new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
+    new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
+];enemies[1].roomX = 1; enemies[1].roomY = 0; 
+enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
@@ -164,15 +169,15 @@ if (map[pr] && map[pr][pc] === 5) {
         if (countUI) countUI.innerText = hiddenItemsFound;
         showStoryScreen("hidden_item"); 
     }
-    // Gọi logic update của Enemy
-    theNemesis.update(player, currentRoomX, currentRoomY, keysFound);
-
-    // Xử lý va chạm với Enemy
-    if (currentRoomX === theNemesis.roomX && currentRoomY === theNemesis.roomY) {
-        if (Math.hypot(player.x - theNemesis.x, player.y - theNemesis.y) < 25) {
-            triggerJumpscare();
+    enemies.forEach(enemy => {
+        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+                triggerJumpscare();
+            }
         }
-    }
+    });
 }
 
 
@@ -193,7 +198,7 @@ function draw() {
     }
     
     // Gọi hàm vẽ Enemy
-    theNemesis.draw(ctx, currentRoomX, currentRoomY);
+  enemies.forEach(enemy => enemy.draw(ctx, currentRoomX, currentRoomY));
     
     // Vẽ Player
     ctx.fillStyle = "#007bff"; ctx.fillRect(player.x, player.y, 25, 25);
@@ -228,17 +233,15 @@ document.addEventListener('keydown', (event) => {
 document.getElementById('respawn-btn').onclick = () => {
     player.x = 400; // Reset player position
     player.y = 300;
-    theNemesis.respawn(); // Restore enemy to its saved position
+    enemies.forEach(enemy => enemy.respawn()); // Restore all enemies to their saved positions
     deathCount++;
     isPaused = false;
     gameRunning = true;
 };
 
-theNemesis.savePosition(); // Save enemy position at the start or key moments
-
-// Save the enemy's position when the game starts
+// Save the enemies' positions when the game starts
 window.onload = () => {
-    theNemesis.savePosition();
+    enemies.forEach(enemy => enemy.savePosition());
 };
 // --- HỆ THỐNG BOSS FIGHT DELTARUNE STYLE CHẮC CHẮN CHẠY ---
 let battleHP = 100;
