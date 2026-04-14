@@ -30,7 +30,7 @@ class BaseEnemy {
             for (let d of dirs) {
                 let nc = curr.c + d.dc, nr = curr.r + d.dr;
                 if (nc >= 0 && nc < COLS && nr >= 0 && nr < ROWS) {
-                    if (map[nr] && map[nr][nc] !== 1&& map[nr][nc] !== 4) { 
+                    if (map[nr] && map[nr][nc] !== 1 || map[nr][nc] !== 4) { 
                         let key = `${nc},${nr}`;
                         if (!visited.has(key)) {
                             visited.add(key);
