@@ -367,7 +367,6 @@ window.battleAction = async function(action) {
                 location.reload(); 
             }, 3000);
         }, 2000);
-        return;
 
     setTimeout(bossTurn, 2500); 
 };
