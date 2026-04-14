@@ -134,14 +134,13 @@ function update() {
     if (!gameRunning || isPaused) return;
 
     let nx = player.x, ny = player.y;
-    if (keysPressed['KeyW'] || keysPressed['ArrowUp']) ny -= player.speed;
-    if (keysPressed['KeyS'] || keysPressed['ArrowDown']) ny += player.speed;
-    if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) nx -= player.speed;
-    if (keysPressed['KeyD'] || keysPressed['ArrowRight']) nx += player.speed;
+    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) && canMoveTo(player.x, ny)) ny -= player.speed;
+    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) && canMoveTo(player.x, ny)) ny += player.speed;
+    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) && canMoveTo(nx, player.y)) nx -= player.speed;
+    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) && canMoveTo(nx, player.y)) nx += player.speed;
     if (keysPressed['KeyP']) 
    showStoryScreen("ending_good");
     
-
     if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
     if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
 
@@ -194,6 +193,7 @@ function draw() {
             if(map[r][c]===1) { ctx.fillStyle="#333"; ctx.fillRect(c*50, r*50, 50, 50); }
             if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
             if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
+            if(map[r][c]===4) { ctx.fillStyle="purple"; ctx.fillRect(c*50, r*50, 50, 50); };
         }
     }
     
@@ -239,19 +239,37 @@ document.getElementById('respawn-btn').onclick = () => {
     gameRunning = true;
 };
 function canMoveTo(nextX, nextY) {
-    let col = Math.floor(nextX / TILE_SIZE);
-    let row = Math.floor(nextY / TILE_SIZE);
-    let map = getMap(currentRoomX, currentRoomY);
-    let tile = map[row][col];
 
-    if (tile === 1) return false; 
-    
-    if (tile === 4) {
-        if (hopeCount > 5) {
-            return true; 
-        } else {
-            console.log("Bạn cần trên 5 điểm Hope để vào phòng an toàn!");
-            return false; 
+    const points = [
+        { x: nextX, y: nextY },
+        { x: nextX + player.size, y: nextY },
+        { x: nextX, y: nextY + player.size },
+        { x: nextX + player.size, y: nextY + player.size }
+    ];
+
+    const map = getMap(currentRoomX, currentRoomY);
+
+    for (let p of points) {
+        let col = Math.floor(p.x / TILE_SIZE);
+        let row = Math.floor(p.y / TILE_SIZE);
+
+        // Kiểm tra nếu đi ra ngoài biên map
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) continue;
+
+        let tile = map[row][col];
+
+        // Nếu là tường (1) -> Không cho đi
+        if (tile === 1) return false;
+
+        // Nếu là Cửa khóa (4)
+        if (tile === 4) {
+            if (hopeCount > 5) {
+                return true; // Cho phép đi qua nếu đủ Hope
+            } else {
+                // Có thể thêm thông báo ở đây nếu muốn
+                // console.log("Cần trên 5 điểm Hope để mở cửa này!");
+                return false; 
+            }
         }
     }
     return true;
