@@ -164,6 +164,7 @@ function update() {
 if (map[pr] && map[pr][pc] === 5) {
         map[pr][pc] = 0;
         hiddenItemsFound++;
+
         const countUI = document.getElementById('item-count');
         if (countUI) countUI.innerText = hiddenItemsFound;
         showStoryScreen("hidden_item"); 
@@ -263,7 +264,7 @@ function canMoveTo(nextX, nextY) {
 
         // Nếu là Cửa khóa (4)
         if (tile === 4) {
-            if (hopeCount > 5) {
+            if (hiddenItemsFound > 5) {
                 return true; // Cho phép đi qua nếu đủ Hope
             } else {
                 // Có thể thêm thông báo ở đây nếu muốn
