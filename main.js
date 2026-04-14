@@ -299,7 +299,7 @@ let currentTypingTimer = null;
  * @returns {Promise} - Trả về Promise để có thể chờ (await) khi gõ xong.
  */
 function typeDialog(text, options = {}) {
-    const { speed = 50, elementId = 'battle-dialog' } = options;
+    const { speed = 150, elementId = 'battle-dialog' } = options;
     const dialogBox = document.getElementById(elementId);
 
     // Kiểm tra an toàn: Nếu phần tử không tồn tại thì dừng hàm
