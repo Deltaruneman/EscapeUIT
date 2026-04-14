@@ -134,10 +134,14 @@ function update() {
     if (!gameRunning || isPaused) return;
 
     let nx = player.x, ny = player.y;
-    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) && canMoveTo(player.x, ny)) ny -= player.speed;
-    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) && canMoveTo(player.x, ny)) ny += player.speed;
-    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) && canMoveTo(nx, player.y)) nx -= player.speed;
-    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) && canMoveTo(nx, player.y)) nx += player.speed;
+    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
+    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
+    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
+    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
+    if (canMoveTo(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+    }
     if (keysPressed['KeyP']) 
    showStoryScreen("ending_good");
     
