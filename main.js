@@ -150,6 +150,7 @@ function update() {
         map[pr][pc] = 0;
         keysFound++;
         document.getElementById('key-count').innerText = keysFound;
+        if (countUI) countUI.innerText = keysFound;
         showStoryScreen("key"); 
     }
 if (map[pr] && map[pr][pc] === 5) {
