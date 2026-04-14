@@ -331,7 +331,7 @@ let hopeisused = false;
 // Hàm xử lý nút bấm
 window.battleAction = async function(action) {
     if (!isPlayerTurn) return;
-   
+    isPlayerTurn = false; 
 
     if (action === 'FIGHT') {
         let dmg = Math.floor(Math.random() * 20) + 15; 
@@ -356,10 +356,9 @@ window.battleAction = async function(action) {
     else if (action === 'ESCAPE') {
        await typeDialog(`* Bỏ cuộc ư?? nằm mơ đi, kẻ không đủ quyết tâm không đáng để tồn tại!`);
     }
+    }
 
     updateBattleUI();
-
-    // Kiểm tra Boss chết
     if (bossHP <= 0) {
         setTimeout(async   () => {
             await typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
@@ -369,9 +368,8 @@ window.battleAction = async function(action) {
             }, 3000);
         }, 2000);
         return;
-    }
- isPlayerTurn = false; 
-    setTimeout(bossTurn, 2500);
+
+    setTimeout(bossTurn, 2500); 
 };
 
 async function bossTurn() {
