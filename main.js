@@ -11,10 +11,10 @@ let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
 let hopeCount = 0
-const player = { x: 400, y: 300, size: 25, speed: 4 };
+const player = { x: 400, y: 300, size: 25, speed: 3.2 };
 
 const enemies = [
-    new RedEnemy(50, 50, 2.5),        // Đỏ: Theo dõi sát sao
+    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
     new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
 ];enemies[1].roomX = 1; enemies[1].roomY = 0; 
@@ -212,6 +212,89 @@ function draw() {
     const grad = ctx.createRadialGradient(player.x+12, player.y+12, 50, player.x+12, player.y+12, 150);
     grad.addColorStop(0, "transparent"); grad.addColorStop(1, "rgba(0,0,0,0.8)");
     ctx.fillStyle = grad; ctx.fillRect(0,0,800,600);
+}
+
+function drawSafeZone() {
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Semi-transparent green
+    ctx.fillRect(SAFE_ZONE.x, SAFE_ZONE.y, SAFE_ZONE.width, SAFE_ZONE.height);
+}
+
+function gameLoop() {
+    if (!isPaused && gameRunning) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawSafeZone(); // Visualize the safe zone
+        updatePlayer();
+        updateEnemies();
+        renderGame();
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+function updatePlayer() {
+    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
+    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
+    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
+    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
+    if (canMoveTo(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+    }
+    if (keysPressed['KeyP']) 
+   showStoryScreen("ending_good");
+    
+    if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
+    if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
+
+    if (player.x < -15) { currentRoomX--; player.x = 780; }
+    else if (player.x > 790) { currentRoomX++; player.x = 10; }
+    if (player.y < -15) { currentRoomY--; player.y = 580; }
+    else if (player.y > 590) { currentRoomY++; player.y = 10; }
+
+    const map = getMap(currentRoomX, currentRoomY);
+    let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
+    
+    // Nhặt chìa khóa
+    if (map[pr] && map[pr][pc] === 3) {
+        map[pr][pc] = 0;
+        keysFound++;
+        const countUI = document.getElementById('key-count');   
+        document.getElementById('key-count').innerText = keysFound;
+        if (countUI) countUI.innerText = keysFound;
+        showStoryScreen("key"); 
+    }
+if (map[pr] && map[pr][pc] === 5) {
+        map[pr][pc] = 0;
+        hiddenItemsFound++;
+
+        const countUI = document.getElementById('item-count');
+        if (countUI) countUI.innerText = hiddenItemsFound;
+        showStoryScreen("hidden_item"); 
+    }
+    enemies.forEach(enemy => {
+        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+                triggerJumpscare();
+            }
+        }
+    });
+}
+
+function updateEnemies() {
+    enemies.forEach(enemy => {
+        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+                triggerJumpscare();
+            }
+        }
+    });
+}
+
+function renderGame() {
+    draw();
 }
 
 function loop() { 

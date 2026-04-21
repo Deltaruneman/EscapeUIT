@@ -139,16 +139,37 @@ class BaseEnemy {
     }
 }
 
+// Define a safe zone
+const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150 }; // Example coordinates
+
+// Helper function to check if a point is inside the safe zone
+function isInSafeZone(x, y) {
+    return (
+        x > SAFE_ZONE.x &&
+        x < SAFE_ZONE.x + SAFE_ZONE.width &&
+        y > SAFE_ZONE.y &&
+        y < SAFE_ZONE.y + SAFE_ZONE.height
+    );
+}
+
 // 🔴 Loại Đỏ: Cơ chế bám đuôi liên tục y như cũ
 class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "red");
     }
+
     update(player, currentRoomX, currentRoomY, keysFound) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.3);
         let targetX = player.x;
         let targetY = player.y;
         let isAcrossRooms = (this.roomX !== currentRoomX || this.roomY !== currentRoomY);
+
+        // Check if the player is in the safe zone
+        if (isInSafeZone(player.x, player.y)) {
+            // If the player is in the safe zone, the enemy pauses or patrols
+            this.wanderMove(getMap(this.roomX, this.roomY));
+            return;
+        }
 
         if (this.roomX < currentRoomX) { targetX = 850; targetY = player.y; }
         else if (this.roomX > currentRoomX) { targetX = -50; targetY = player.y; }
