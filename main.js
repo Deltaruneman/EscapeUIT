@@ -268,7 +268,7 @@ function canMoveTo(nextX, nextY) {
 
         // Nếu là Cửa khóa (4)
         if (tile === 4) {
-            if (hiddenItemsFound > 5) {
+            if (hiddenItemsFound >= 5) {
                 return true; // Cho phép đi qua nếu đủ Hope
             } else {
                 // Có thể thêm thông báo ở đây nếu muốn
