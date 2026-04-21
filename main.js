@@ -47,13 +47,13 @@ function showStoryScreen(type) {
         return;
     }  else if (type === "ending_good") {
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
-        text.innerText = "CHÚC MỪNG! Bạn đã sống sót khỏi ngôi trường và sẵn sàng nhận bằng tốt nghiệp!";
+        text.innerText = "CHÚC MỪNG! Bạn đã thật sự tìm được 4 mạnh ký ức, linh hồn của bạn trở nên mạnh mẽ hơn bao giờ hết và đã có thể giải thoát bạn khỏi đây!";
         footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
         screen.style.display = 'flex';
         return;
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
-        text.innerText = "Mày nghĩ chỉ đến vậy thôi sao? Thật sự nghĩ mình có thể thoát khỏi đây sao";
+        text.innerText = "Không... Ngươi không thể rời đi, ta sẽ giữ ngươi lại, tât cả các ngươi đều phải ở lại đây.";
         footer.innerHTML = '<button class="retry-btn" onclick="startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
         screen.style.display = 'flex';
         return;
@@ -399,12 +399,7 @@ window.startBossBattle = function() {
     }
 
     updateBattleUI();
-    typeDialog("*....Vì sao bạn lại rời khỏi UIT?....*").then(() => {
-        return typeDialog("*....Bạn đã nghĩ mình có thể thoát khỏi đây sao?....*");
-    }).then(() => {
-        return typeDialog("*....Đây là nơi bạn thuộc về, nơi bạn sẽ mãi mãi bị mắc kẹt....*");
-    }).
-
+    typeDialog("*....Vì sao bạn lại rời khỏi UIT?....*")
     // Wait 2.5s before allowing player to act
     setTimeout(() => {
         typeDialog("* Lượt của bạn!");
