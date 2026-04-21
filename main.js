@@ -11,10 +11,10 @@ let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
 let hopeCount = 0
-const player = { x: 400, y: 300, size: 25, speed: 3 };
+const player = { x: 400, y: 300, size: 25, speed: 4 };
 
 const enemies = [
-    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
+    new RedEnemy(50, 50, 2.5),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
     new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
 ];enemies[1].roomX = 1; enemies[1].roomY = 0; 
@@ -288,7 +288,7 @@ let bossHP = 200;
 let isPlayerTurn = false;
 
 window.startBossBattle = function() {
-    console.log("Boss battle bắt đầu!"); // Debug log
+    console.log("UIT ở dạng thực thể xuất hiện!"); // Debug log
 
     // Check if story-screen exists and hide it
     const storyScreen = document.getElementById('story-screen');
@@ -316,7 +316,11 @@ window.startBossBattle = function() {
     }
 
     updateBattleUI();
-    typeDialog("* BOSS CUỐI CÙNG XUẤT HIỆN! Hắn sẽ không để bạn ra trường dễ dàng vậy đâu.");
+    typeDialog("*....Vì sao bạn lại rời khỏi UIT?....*").then(() => {
+        return typeDialog("*....Bạn đã nghĩ mình có thể thoát khỏi đây sao?....*");
+    }).then(() => {
+        return typeDialog("*....Đây là nơi bạn thuộc về, nơi bạn sẽ mãi mãi bị mắc kẹt....*");
+    }).
 
     // Wait 2.5s before allowing player to act
     setTimeout(() => {
