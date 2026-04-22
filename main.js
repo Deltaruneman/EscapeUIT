@@ -12,7 +12,14 @@ let currentRoomY = 0;
 let hiddenItemsFound = 0;
 let hopeCount = 0
 const player = { x: 400, y: 300, size: 25, speed: 3.2 };
-
+const SAFE_ZONE = {
+    x: 300,
+    y: 200,
+    width: 100,
+    height: 100,
+    roomX: 0,
+    roomY: 0
+};
 const enemies = [
     new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
@@ -181,6 +188,11 @@ if (map[pr] && map[pr][pc] === 5) {
                 triggerJumpscare();
             }
         }
+        else if (!isInSafeZone()) {
+    if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+        triggerJumpscare();
+    }
+}
     });
 }
 
@@ -219,88 +231,22 @@ function drawSafeZone() {
     ctx.fillRect(SAFE_ZONE.x, SAFE_ZONE.y, SAFE_ZONE.width, SAFE_ZONE.height);
 }
 
-function gameLoop() {
-    if (!isPaused && gameRunning) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawSafeZone(); // Visualize the safe zone
-        updatePlayer();
-        updateEnemies();
-        renderGame();
-    }
-    requestAnimationFrame(gameLoop);
+
+function drawSafeZone() {
+    if (currentRoomX !== SAFE_ZONE.roomX || currentRoomY !== SAFE_ZONE.roomY) return;
+
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+    ctx.fillRect(SAFE_ZONE.x, SAFE_ZONE.y, SAFE_ZONE.width, SAFE_ZONE.height);
 }
+function isInSafeZone() {
+    if (currentRoomX !== SAFE_ZONE.roomX || currentRoomY !== SAFE_ZONE.roomY) return false;
 
-function updatePlayer() {
-    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
-    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
-    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
-    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
-    if (canMoveTo(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
-    }
-    if (keysPressed['KeyP']) 
-   showStoryScreen("ending_good");
-    
-    if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
-    if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
-
-    if (player.x < -15) { currentRoomX--; player.x = 780; }
-    else if (player.x > 790) { currentRoomX++; player.x = 10; }
-    if (player.y < -15) { currentRoomY--; player.y = 580; }
-    else if (player.y > 590) { currentRoomY++; player.y = 10; }
-
-    const map = getMap(currentRoomX, currentRoomY);
-    let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
-    
-    // Nhặt chìa khóa
-    if (map[pr] && map[pr][pc] === 3) {
-        map[pr][pc] = 0;
-        keysFound++;
-        const countUI = document.getElementById('key-count');   
-        document.getElementById('key-count').innerText = keysFound;
-        if (countUI) countUI.innerText = keysFound;
-        showStoryScreen("key"); 
-    }
-if (map[pr] && map[pr][pc] === 5) {
-        map[pr][pc] = 0;
-        hiddenItemsFound++;
-
-        const countUI = document.getElementById('item-count');
-        if (countUI) countUI.innerText = hiddenItemsFound;
-        showStoryScreen("hidden_item"); 
-    }
-    enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        
-        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
-            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
-                triggerJumpscare();
-            }
-        }
-    });
-}
-
-function updateEnemies() {
-    enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        
-        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
-            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
-                triggerJumpscare();
-            }
-        }
-    });
-}
-
-function renderGame() {
-    draw();
-}
-
-function loop() { 
-    update(); 
-    draw(); 
-    requestAnimationFrame(loop); 
+    return (
+        player.x < SAFE_ZONE.x + SAFE_ZONE.width &&
+        player.x + player.size > SAFE_ZONE.x &&
+        player.y < SAFE_ZONE.y + SAFE_ZONE.height &&
+        player.y + player.size > SAFE_ZONE.y
+    );
 }
 
 // Chạy vòng lặp

@@ -157,29 +157,24 @@ class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "red");
     }
+update(player, roomX, roomY) {
+    if (this.roomX !== roomX || this.roomY !== roomY) return;
 
-    update(player, currentRoomX, currentRoomY, keysFound) {
-        this.currentSpeed = this.baseSpeed + (keysFound * 0.3);
-        let targetX = player.x;
-        let targetY = player.y;
-        let isAcrossRooms = (this.roomX !== currentRoomX || this.roomY !== currentRoomY);
+    let dx = player.x - this.x;
+    let dy = player.y - this.y;
+    let dist = Math.hypot(dx, dy);
 
-        // Check if the player is in the safe zone
-        if (isInSafeZone(player.x, player.y)) {
-            // If the player is in the safe zone, the enemy pauses or patrols
-            this.wanderMove(getMap(this.roomX, this.roomY));
-            return;
-        }
+    let nx = this.x + (dx / dist) * this.speed;
+    let ny = this.y + (dy / dist) * this.speed;
 
-        if (this.roomX < currentRoomX) { targetX = 850; targetY = player.y; }
-        else if (this.roomX > currentRoomX) { targetX = -50; targetY = player.y; }
-        else if (this.roomY < currentRoomY) { targetX = player.x; targetY = 650; }
-        else if (this.roomY > currentRoomY) { targetX = player.x; targetY = -50; }
-
-        const map = getMap(this.roomX, this.roomY);
-        this.chaseMove(targetX, targetY, map, isAcrossRooms);
-        this.handleRoomTransition();
+    // ✅ CHECK COLLISION
+    if (!isColliding(nx, this.y, this.size, roomX, roomY)) {
+        this.x = nx;
     }
+    if (!isColliding(this.x, ny, this.size, roomX, roomY)) {
+        this.y = ny;
+    }
+}
 }
 
 // 🟢 Loại Xanh: Chỉ di chuyển ngẫu nhiên
