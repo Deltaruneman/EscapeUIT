@@ -1,7 +1,7 @@
 // Thêm roomX và roomY vào để xác định phòng chứa Safe Zone (ví dụ phòng bắt đầu 0, 0)
 const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 }; 
 
-// Cập nhật hàm kiểm tra Safe Zone để check thêm ID phòng
+// Cập nhật hàm kiểm tra Safe Zone để check thêm phòng
 function isInSafeZone(x, y, roomX, roomY) {
     return (
         roomX === SAFE_ZONE.roomX &&
@@ -27,6 +27,7 @@ class BaseEnemy {
         this.wanderTargetY = null;
     }
 
+    // AI Tìm đường dùng BFS
     findPath(startC, startR, targetC, targetR, map) {
         if (startC < 0 || startC >= COLS || startR < 0 || startR >= ROWS) return [];
         if (startC === targetC && startR === targetR) return [];
@@ -68,7 +69,7 @@ class BaseEnemy {
         else if (this.y > 590) { this.roomY++; this.y = 10; }
     }
 
-    // 🔴 MỚI: Tìm ô gạch ở mép bản đồ (lối ra) không bị tường chặn để Enemy đi qua
+    // TÌM LỐI RA: Dùng để Enemy đi mép bản đồ qua phòng khác mà không bị đâm xuyên tường
     findClosestExit(map, targetRoomX, targetRoomY, player) {
         let validExits = [];
         let targetCol = -1, targetRow = -1;
@@ -90,7 +91,6 @@ class BaseEnemy {
 
         if (validExits.length === 0) return null;
 
-        // Ưu tiên chọn lối ra có khoảng cách gần Player nhất để Enemy khôn hơn
         let bestExit = validExits[0];
         let minDist = Infinity;
         for (let exit of validExits) {
@@ -111,7 +111,7 @@ class BaseEnemy {
                     let tileX = c * TILE_SIZE + 10;
                     let tileY = r * TILE_SIZE + 10;
                     
-                    // 🔴 MỚI: Bỏ qua các ô nằm trong Safe Zone để Enemy không đi dạo vào đây
+                    // Không bao giờ dạo bước ngẫu nhiên vào Safe Zone
                     if (isInSafeZone(tileX, tileY, this.roomX, this.roomY)) continue;
                     
                     validTiles.push({c, r});
@@ -132,7 +132,7 @@ class BaseEnemy {
         this.chaseMove(this.wanderTargetX, this.wanderTargetY, map);
     }
 
-    // 🔴 MỚI: Đã bỏ biến isAcrossRooms, ép Enemy luôn dùng BFS để né tường
+    // ĐÃ FIX: Thuật toán di chuyển mượt bằng BFS 100%, khắc phục triệt để lỗi bỏ đuôi Player
     chaseMove(targetX, targetY, map) {
         let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
         let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
@@ -145,30 +145,31 @@ class BaseEnemy {
         let path = this.findPath(ec, er, safeTc, safeTr, map);
 
         if (path.length > 0) {
+            // Đi lách qua tường bằng BFS
             let nextStep = path[0];
             let nextX = nextStep.c * TILE_SIZE + 10;
             let nextY = nextStep.r * TILE_SIZE + 10;
             let dx = nextX - this.x, dy = nextY - this.y;
             let dist = Math.hypot(dx, dy);
             if (dist > 0) {
-                // Di chuyển mượt mà, không bị giật khi lại gần tâm node
                 let moveDist = Math.min(this.currentSpeed, dist);
                 this.x += (dx / dist) * moveDist;
                 this.y += (dy / dist) * moveDist;
             }
         } else {
-            // Nếu đã tới vị trí biên (để sang phòng) hoặc kẹt đường
-            let dx = targetX - this.x, dy = targetY - this.y;
-            let dist = Math.hypot(dx, dy);
-            
-            // Chỉ bước ra ngoài màn hình nếu đang đứng sát mép (chuẩn bị chuyển phòng)
-            let isAtEdge = (ec === 0 || ec === COLS - 1 || er === 0 || er === ROWS - 1);
-            
-            if (dist > 0 && isAtEdge) {
-                this.x += (dx / dist) * this.currentSpeed;
-                this.y += (dy / dist) * this.currentSpeed;
+            // Đã tới CÙNG Ô LƯỚI với target, tiếp tục lao thẳng bám vào tọa độ tuyệt đối của mục tiêu 
+            // HOẶC mục tiêu đang nằm ngoài viền màn hình (đang lúc chuyển phòng)
+            if ((ec === safeTc && er === safeTr) || targetX < 0 || targetX > COLS * TILE_SIZE || targetY < 0 || targetY > ROWS * TILE_SIZE) {
+                let dx = targetX - this.x, dy = targetY - this.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 0) {
+                    let moveDist = Math.min(this.currentSpeed, dist);
+                    this.x += (dx / dist) * moveDist;
+                    this.y += (dy / dist) * moveDist;
+                }
             } else {
-                this.pickRandomWanderTarget(map); // Bị chặn thật sự thì đổi mục tiêu đi dạo
+                // Kẹt thực sự ở sau tường (hiếm), ép chọn mục tiêu wander mới
+                this.pickRandomWanderTarget(map);
             }
         }
     }
@@ -198,7 +199,7 @@ class BaseEnemy {
     }
 }
 
-// 🔴 Loại Đỏ: Cơ chế bám đuôi chuẩn xác
+// 🔴 Loại Đỏ: Cơ chế bám đuôi liên tục và thông minh bằng BFS
 class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "red");
@@ -208,7 +209,7 @@ class RedEnemy extends BaseEnemy {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.3);
         const map = getMap(this.roomX, this.roomY);
 
-        // Check xem Player có đang trong Safe Zone Ở ĐÚNG PHÒNG ĐÓ không
+        // Check xem Player có đang trong Safe Zone ĐÚNG PHÒNG ĐÓ không
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
             this.wanderMove(map);
             this.handleRoomTransition();
@@ -218,22 +219,29 @@ class RedEnemy extends BaseEnemy {
         let targetX = player.x;
         let targetY = player.y;
 
-        // Logic chuyển phòng: Tìm một lối ra hợp lệ (không phải tường) để đi tới trước
+        // Nếu Player sang phòng khác, Enemy sẽ tìm đường bằng BFS ra chỗ mép bản đồ (chỗ ko có tường)
         if (this.roomX !== currentRoomX || this.roomY !== currentRoomY) {
             let exit = this.findClosestExit(map, currentRoomX, currentRoomY, player);
             if (exit) {
                 targetX = exit.x;
                 targetY = exit.y;
                 
-                // Khi đã giẫm lên ô lối ra, ép tọa độ vọt ra ngoài màn hình để trigger handleRoomTransition
                 let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
                 let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
+                
+                // Khi đã giẫm lên được ô mép cửa, ép kéo tọa độ ra khỏi khung hình để kích hoạt chuyển phòng
                 if (ec === exit.c && er === exit.r) {
                     if (this.roomX < currentRoomX) targetX = 850;
                     else if (this.roomX > currentRoomX) targetX = -50;
                     else if (this.roomY < currentRoomY) targetY = 650;
                     else if (this.roomY > currentRoomY) targetY = -50;
                 }
+            } else {
+                // Nếu cực kì xui bị kẹt đường hoàn toàn thì dự phòng cho trôi qua tường
+                if (this.roomX < currentRoomX) { targetX = 850; targetY = player.y; }
+                else if (this.roomX > currentRoomX) { targetX = -50; targetY = player.y; }
+                else if (this.roomY < currentRoomY) { targetX = player.x; targetY = 650; }
+                else if (this.roomY > currentRoomY) { targetX = player.x; targetY = -50; }
             }
         }
 
@@ -266,7 +274,7 @@ class PinkEnemy extends BaseEnemy {
         let isChasing = false;
         const detectRadius = 250; 
 
-        // Ngừng rượt nếu Player chạy vào Safe Zone
+        // Ngừng rượt nếu Player trốn vô Safe Zone hợp lệ
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
             this.wanderMove(map);
             this.handleRoomTransition();
