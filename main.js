@@ -214,15 +214,12 @@ function draw() {
     ctx.fillStyle = grad; ctx.fillRect(0,0,800,600);
 }
 
-function drawSafeZone() {
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Semi-transparent green
-    ctx.fillRect(SAFE_ZONE.x, SAFE_ZONE.y, SAFE_ZONE.width, SAFE_ZONE.height);
-}
+
 
 function gameLoop() {
     if (!isPaused && gameRunning) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawSafeZone(); // Visualize the safe zone
+
         updatePlayer();
         updateEnemies();
         renderGame();
@@ -349,18 +346,13 @@ function canMoveTo(nextX, nextY) {
         // Nếu là tường (1) -> Không cho đi
         if (tile === 1) return false;
 
-        // Nếu là Cửa khóa (4)
+        // BỎ chặn ô số 4: Giờ nó là Safe Zone nên cho phép Player bước vào thoải mái!
         if (tile === 4) {
-            if (hiddenItemsFound >= 5) {
-                return true; // Cho phép đi qua nếu đủ Hope
-            } else {
-                // Có thể thêm thông báo ở đây nếu muốn
-                // console.log("Cần trên 5 điểm Hope để mở cửa này!");
-                return false; 
-            }
+            return true; 
         }
     }
     return true;
+    
 }
 
 window.onload = () => {

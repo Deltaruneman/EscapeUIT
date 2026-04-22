@@ -3,15 +3,20 @@ const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 
 
 // Cập nhật hàm kiểm tra Safe Zone để check thêm phòng
 function isInSafeZone(x, y, roomX, roomY) {
-    return (
-        roomX === SAFE_ZONE.roomX &&
-        roomY === SAFE_ZONE.roomY &&
-        x > SAFE_ZONE.x &&
-        x < SAFE_ZONE.x + SAFE_ZONE.width &&
-        y > SAFE_ZONE.y &&
-        y < SAFE_ZONE.y + SAFE_ZONE.height
-    );
+    // TILE_SIZE = 50, size của player = 25
+    const map = getMap(roomX, roomY);
+    
+    // Lấy toạ độ tâm của người chơi/quái vật để check cho chính xác
+    let col = Math.floor((x + 12.5) / 50); 
+    let row = Math.floor((y + 12.5) / 50);
+    
+    // Nếu Player đang dẫm lên ô số 4 -> đang trong Safe Zone
+    if (map && map[row] && map[row][col] === 4) {
+        return true;
+    }
+    return false;
 }
+
 
 class BaseEnemy {
     constructor(startX, startY, baseSpeed, color) {
@@ -103,25 +108,20 @@ class BaseEnemy {
         return bestExit;
     }
 
-    pickRandomWanderTarget(map) {
+  pickRandomWanderTarget(map) {
         let validTiles = [];
-        for (let r=0; r<ROWS; r++) {
-            for (let c=0; c<COLS; c++) {
-                if (map[r] && map[r][c] !== 1) {
-                    let tileX = c * TILE_SIZE + 10;
-                    let tileY = r * TILE_SIZE + 10;
-                    
-                    // Không bao giờ dạo bước ngẫu nhiên vào Safe Zone
-                    if (isInSafeZone(tileX, tileY, this.roomX, this.roomY)) continue;
-                    
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                // QUAN TRỌNG: Không cho AI đi dạo vào tường (1) và Safe Zone (4)
+                if (map[r] && map[r][c] !== 1 && map[r][c] !== 4) {
                     validTiles.push({c, r});
                 }
             }
         }
         if (validTiles.length > 0) {
             let rTile = validTiles[Math.floor(Math.random() * validTiles.length)];
-            this.wanderTargetX = rTile.c * TILE_SIZE + 10;
-            this.wanderTargetY = rTile.r * TILE_SIZE + 10;
+            this.wanderTargetX = rTile.c * 50 + 10;
+            this.wanderTargetY = rTile.r * 50 + 10;
         }
     }
 
