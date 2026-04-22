@@ -349,6 +349,7 @@ function canMoveTo(nextX, nextY) {
 
         // BỎ chặn ô số 4: Giờ nó là Safe Zone nên cho phép Player bước vào thoải mái!
         if (tile === 4) {
+            if(hopeCount>5) 
             return true; 
         }
     }
