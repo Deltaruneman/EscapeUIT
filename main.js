@@ -195,10 +195,10 @@ function draw() {
     const map = getMap(currentRoomX, currentRoomY);
     for(let r=0; r<ROWS; r++){
         for(let c=0; c<COLS; c++){
-            if(map[r][c]===1) { ctx.fillStyle="#333"; ctx.fillRect(c*50, r*50, 50, 50); }
+            if(map[r][c]===1) { ctx.fillStyle="#121212"; ctx.fillRect(c*50, r*50, 50, 50); }
             if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
             if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
-            if(map[r][c]===4) { ctx.fillStyle="purple"; ctx.fillRect(c*50, r*50, 50, 50); };
+            if(map[r][c]===4) { ctx.fillStyle="green"; ctx.fillRect(c*50, r*50, 50, 50); };
         }
     }
     
@@ -219,6 +219,7 @@ function draw() {
 function gameLoop() {
     if (!isPaused && gameRunning) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 
         updatePlayer();
         updateEnemies();
