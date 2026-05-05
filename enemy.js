@@ -1,5 +1,11 @@
 // Thêm roomX và roomY vào để xác định phòng chứa Safe Zone (ví dụ phòng bắt đầu 0, 0)
-const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 }; 
+const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 };
+
+// --- INVINCIBILITY FRAMES ---
+// Sau khi player chết, enemy sẽ không tấn công được trong 1 giây
+let invincibleUntil = 0;
+function setInvincible(ms = 1000) { invincibleUntil = Date.now() + ms; }
+function isInvincible() { return Date.now() < invincibleUntil; }
 
 // Cập nhật hàm kiểm tra Safe Zone để check thêm phòng
 function isInSafeZone(x, y, roomX, roomY) {
@@ -199,17 +205,31 @@ class BaseEnemy {
     }
 }
 
-// 🔴 Loại Đỏ: Cơ chế bám đuôi liên tục và thông minh bằng BFS
+// 🔴 Loại Đỏ: Bám đuôi BFS + smooth acceleration + dự đoán vị trí player
 class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "red");
+        // Momentum / smooth movement
+        this.vx = 0;
+        this.vy = 0;
+        this.acceleration = 0.18;
+        this.friction = 0.82;
+        // Rage mode khi player gần
+        this.isRaging = false;
+        // Predict player position
+        this.predictionStrength = 0.35;
     }
 
     update(player, currentRoomX, currentRoomY, keysFound) {
-        this.currentSpeed = this.baseSpeed + (keysFound * 0.3);
+        // Scale speed theo số key, rage burst khi rất gần
+        const dist = Math.hypot(player.x - this.x, player.y - this.y);
+        const sameRoom = (this.roomX === currentRoomX && this.roomY === currentRoomY);
+        this.isRaging = sameRoom && dist < 120;
+        const rageMultiplier = this.isRaging ? 1.5 : 1.0;
+        this.currentSpeed = (this.baseSpeed + keysFound * 0.3) * rageMultiplier;
+
         const map = getMap(this.roomX, this.roomY);
 
-        // Check xem Player có đang trong Safe Zone ĐÚNG PHÒNG ĐÓ không
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
             this.wanderMove(map);
             this.handleRoomTransition();
@@ -219,17 +239,21 @@ class RedEnemy extends BaseEnemy {
         let targetX = player.x;
         let targetY = player.y;
 
-        // Nếu Player sang phòng khác, Enemy sẽ tìm đường bằng BFS ra chỗ mép bản đồ (chỗ ko có tường)
+        // Dự đoán vị trí player dựa trên velocity ước tính (chỉ khi cùng phòng)
+        if (sameRoom && player.lastX !== undefined) {
+            let pvx = player.x - player.lastX;
+            let pvy = player.y - player.lastY;
+            targetX += pvx * (60 * this.predictionStrength);
+            targetY += pvy * (60 * this.predictionStrength);
+        }
+
         if (this.roomX !== currentRoomX || this.roomY !== currentRoomY) {
             let exit = this.findClosestExit(map, currentRoomX, currentRoomY, player);
             if (exit) {
                 targetX = exit.x;
                 targetY = exit.y;
-                
                 let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
                 let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
-                
-                // Khi đã giẫm lên được ô mép cửa, ép kéo tọa độ ra khỏi khung hình để kích hoạt chuyển phòng
                 if (ec === exit.c && er === exit.r) {
                     if (this.roomX < currentRoomX) targetX = 850;
                     else if (this.roomX > currentRoomX) targetX = -50;
@@ -237,7 +261,6 @@ class RedEnemy extends BaseEnemy {
                     else if (this.roomY > currentRoomY) targetY = -50;
                 }
             } else {
-                // Nếu cực kì xui bị kẹt đường hoàn toàn thì dự phòng cho trôi qua tường
                 if (this.roomX < currentRoomX) { targetX = 850; targetY = player.y; }
                 else if (this.roomX > currentRoomX) { targetX = -50; targetY = player.y; }
                 else if (this.roomY < currentRoomY) { targetX = player.x; targetY = 650; }
@@ -245,8 +268,62 @@ class RedEnemy extends BaseEnemy {
             }
         }
 
-        this.chaseMove(targetX, targetY, map);
+        this.chaseMoveSmooth(targetX, targetY, map);
         this.handleRoomTransition();
+    }
+
+    // Di chuyển với momentum (mượt hơn chaseMove gốc)
+    chaseMoveSmooth(targetX, targetY, map) {
+        let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
+        let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
+        let tc = Math.max(0, Math.min(COLS-1, Math.floor(targetX / TILE_SIZE)));
+        let tr = Math.max(0, Math.min(ROWS-1, Math.floor(targetY / TILE_SIZE)));
+
+        let path = this.findPath(ec, er, tc, tr, map);
+        let dx = 0, dy = 0;
+
+        if (path.length > 0) {
+            let next = path[0];
+            dx = (next.c * TILE_SIZE + 10) - this.x;
+            dy = (next.r * TILE_SIZE + 10) - this.y;
+        } else {
+            dx = targetX - this.x;
+            dy = targetY - this.y;
+        }
+
+        let d = Math.hypot(dx, dy);
+        if (d > 0) {
+            // Tích lũy vận tốc (smooth acceleration)
+            this.vx += (dx / d) * this.currentSpeed * this.acceleration;
+            this.vy += (dy / d) * this.currentSpeed * this.acceleration;
+        }
+
+        // Clamp tốc độ tối đa
+        let speed = Math.hypot(this.vx, this.vy);
+        if (speed > this.currentSpeed) {
+            this.vx = (this.vx / speed) * this.currentSpeed;
+            this.vy = (this.vy / speed) * this.currentSpeed;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Friction
+        this.vx *= this.friction;
+        this.vy *= this.friction;
+    }
+
+    draw(ctx, currentRoomX, currentRoomY) {
+        if (this.roomX !== currentRoomX || this.roomY !== currentRoomY) return;
+        // Rage glow effect
+        if (this.isRaging) {
+            ctx.save();
+            ctx.shadowColor = 'red';
+            ctx.shadowBlur = 18 + Math.sin(Date.now() / 80) * 8;
+        }
+        ctx.fillStyle = this.isRaging ? '#ff2200' : 'red';
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        if (this.isRaging) ctx.restore();
     }
 }
 
