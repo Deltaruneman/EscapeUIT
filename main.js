@@ -115,14 +115,14 @@ window.onkeydown = (e) => {
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
 document.getElementById('start-btn').onclick = () => {
-
+  bgMusic.play();
     document.getElementById('start-screen').style.display = 'none';
     showStoryScreen("intro");
-    bmgMusic.play();
+  
 };
 
 function triggerJumpscare() {
-    bgmMusic.pause();
+    bgMusic.pause();
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
