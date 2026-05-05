@@ -402,84 +402,62 @@ const BATTLE_W = 800, BATTLE_H = 600;
 const DODGE_BOX = { x: 250, y: 250, w: 300, h: 180 };
 
 
-
-
-const DialogManager = {
-    queue: [],
-    isTyping: false,
-    currentText: '',
-    fullText: '',
-    speed: 25,
-    resolve: null,
-
-    async show(text) {
-        return new Promise(res => {
-            this.queue.push({ text, res });
-            this.run();
-        });
-    },
-
-    async run() {
-        if (this.isTyping || this.queue.length === 0) return;
-
-        const { text, res } = this.queue.shift();
-        this.isTyping = true;
-        this.fullText = text;
-        this.currentText = '';
-
-        const box = document.getElementById('dialog-text');
-        box.innerText = '';
-
-        for (let i = 0; i < text.length; i++) {
-            this.currentText += text[i];
-            box.innerText = this.currentText;
-
-            if (this.skip) break;
-            await new Promise(r => setTimeout(r, this.speed));
-        }
-
-        box.innerText = text;
-        this.isTyping = false;
-        this.skip = false;
-
-        // chờ người chơi bấm tiếp
-        await this.waitForInput();
-
-        res();
-        this.run();
-    },
-
-    waitForInput() {
-        return new Promise(resolve => {
-            const handler = () => {
-                document.removeEventListener('keydown', handler);
-                resolve();
-            };
-            document.addEventListener('keydown', handler);
-        });
-    },
-
-    skipTyping() {
-        if (this.isTyping) {
-            this.skip = true;
-        }
-    }
-};
-
-
+let isTyping = false;
+let skipDialog = false;
 
 
 document.addEventListener('keydown', (e) => {
-    if (e.code === 'J' || e.code === 'Enter') {
-        DialogManager.skipTyping();
+    // Nếu đang gõ chữ và người dùng bấm J hoặc Enter
+    if ((e.code === 'KeyJ' || e.code === 'Enter' || e.code === 'NumpadEnter') && isTyping) {
+        skipDialog = true;
     }
 });
+// Thay đổi 'dialog-box' thành ID của thẻ HTML hiển thị text trong game của bạn
+function typeDialog(text) {
+    return new Promise((resolve) => {
+        // Lấy element hiển thị text (bạn nhớ sửa ID cho đúng với HTML của bạn nhé)
+        const dialogEl = document.getElementById('dialog-text'); 
+        if (!dialogEl) {
+            console.warn("Không tìm thấy thẻ hiển thị hội thoại!");
+            return resolve();
+        }
 
-async function showDialogs(arr) {
-    for (let t of arr) {
-        await DialogManager.show(t);
-    }
+        // Reset trạng thái
+        dialogEl.innerHTML = '';
+        isTyping = true;
+        skipDialog = false;
+        let i = 0;
+
+        function typeNextChar() {
+            // NẾU NGƯỜI CHƠI BẤM SKIP
+            if (skipDialog) {
+                dialogEl.innerHTML = text; // Hiện full text ngay lập tức
+                isTyping = false;
+                
+                // Đợi một chút để người chơi kịp đọc (hoặc bấm lần nữa để qua luôn)
+                setTimeout(resolve, 800); 
+                return;
+            }
+
+            // NẾU CHƯA SKIP, TIẾP TỤC GÕ TỪNG CHỮ
+            if (i < text.length) {
+                dialogEl.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeNextChar, 30); // Tốc độ gõ (30ms/chữ)
+            } else {
+                // Đã gõ xong toàn bộ
+                isTyping = false;
+                setTimeout(resolve, 1000); // Tự động tắt sau 1s nếu không ai bấm gì
+            }
+        }
+
+        typeNextChar();
+    });
 }
+
+
+
+
 
 
 // Tạo bullet patterns khác nhau
