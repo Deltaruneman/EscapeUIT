@@ -656,7 +656,7 @@ window.startBossBattle = function() {
 
     showBattleMenu(false);
     typeDialog("* ...Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?").then(() => {
-        return typeDialog("* Kẻ kém cỏi như ngươi chỉ đến được tới đây thôi.");
+        return new Promise(r => setTimeout(r, 800));
     }).then(() => {
         return typeDialog("* TA là UIT. Ta trường tồn. Và ngươi... sẽ ở lại đây MÃI MÃI.");
     }).then(() => {
