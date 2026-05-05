@@ -24,11 +24,11 @@ let currentStoryIdx = 0;
 let storyMode = "intro";
 const bgMusic = new Audio('bgm.waw');
 bgMusic.loop = true; 
-bgMusic.volume = 0.5; 
+bgMusic.volume = 2; 
 
 const bossMusic = new Audio('LastChance42.waw');
 bossMusic.loop = true;
-bossMusic.volume = 0.6;
+bossMusic.volume = 2;
 
 function showStoryScreen(type) {
     isPaused = true;
