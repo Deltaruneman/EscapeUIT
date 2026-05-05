@@ -22,11 +22,11 @@ enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
-const bgMusic = new Audio('bgm.waw');
+const bgMusic = new Audio('bgm.mp3');
 bgMusic.loop = true; 
 bgMusic.volume = 2; 
 
-const bossMusic = new Audio('LastChance42.waw');
+const bossMusic = new Audio('LastChance42.mp3');
 bossMusic.loop = true;
 bossMusic.volume = 2;
 
