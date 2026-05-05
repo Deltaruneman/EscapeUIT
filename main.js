@@ -372,11 +372,7 @@ function canMoveTo(nextX, nextY) {
 
 window.onload = () => {
     enemies.forEach(enemy => enemy.savePosition());
-};
-// ============================================================
-//  BOSS BATTLE - UNDERTALE STYLE
-// ============================================================
-let battleHP = 100;
+};let battleHP = 100;
 let bossHP = 200;
 let isPlayerTurn = false;
 
@@ -396,33 +392,9 @@ let bossPhaseIndex = 0; // 0=normal, 1=angry (HP<100), 2=desperate (HP<50)
 // HP bar animation
 let displayBossHP = 200;
 let displayPlayerHP = 100;
-let skipDialog = false;
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'KeyJ' || e.code === 'Enter') {
-        skipDialog = true;
-    }
-});
+
 const BATTLE_W = 800, BATTLE_H = 600;
 const DODGE_BOX = { x: 250, y: 250, w: 300, h: 180 };
-
-async function typeDialog(text) {
-    const dialogBox = document.getElementById('dialog-text');
-    dialogBox.innerText = '';
-    skipDialog = false;
-
-    for (let i = 0; i < text.length; i++) {
-        if (skipDialog) {
-            dialogBox.innerText = text;
-            break;
-        }
-
-        dialogBox.innerText += text[i];
-        await new Promise(r => setTimeout(r, 30));
-    }
-
-    // Reset lại để lần sau dùng tiếp
-    skipDialog = false;
-}
 
 // Tạo bullet patterns khác nhau
 function spawnBullets(pattern) {
