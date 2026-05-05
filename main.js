@@ -22,6 +22,13 @@ enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
+const bgMusic = new Audio('bgm.waw');
+bgMusic.loop = true; 
+bgMusic.volume = 0.5; 
+
+const bossMusic = new Audio('LastChance42.waw');
+bossMusic.loop = true;
+bossMusic.volume = 0.6;
 
 function showStoryScreen(type) {
     isPaused = true;
@@ -108,10 +115,13 @@ window.onkeyup = (e) => keysPressed[e.code] = false;
 
 document.getElementById('start-btn').onclick = () => {
     document.getElementById('start-screen').style.display = 'none';
+    
     showStoryScreen("intro");
+    bgMusic.play();
 };
 
 function triggerJumpscare() {
+    bgMusic.pause();
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
@@ -319,6 +329,7 @@ document.addEventListener('keydown', (event) => {
 document.getElementById('respawn-btn').onclick = () => {
     player.x = 400; // Reset player position
     player.y = 300;
+    bgMusic.play();
     enemies.forEach(enemy => enemy.respawn()); // Restore all enemies to their saved positions
     deathCount++;
     isPaused = false;
@@ -366,7 +377,9 @@ let isPlayerTurn = false;
 
 window.startBossBattle = function() {
     console.log("UIT ở dạng thực thể xuất hiện!"); // Debug log
-
+bgMusic.pause();
+    bgMusic.currentTime = 0; // Trả nhạc nền về đầu
+    bossMusic.play();
     // Check if story-screen exists and hide it
     const storyScreen = document.getElementById('story-screen');
     if (storyScreen) {
@@ -417,7 +430,7 @@ let currentTypingTimer = null;
  * @returns {Promise} - Trả về Promise để có thể chờ (await) khi gõ xong.
  */
 function typeDialog(text, options = {}) {
-    const { speed = 5, elementId = 'battle-dialog' } = options;
+    const { speed = 55, elementId = 'battle-dialog' } = options;
     const dialogBox = document.getElementById(elementId);
 
     // Kiểm tra an toàn: Nếu phần tử không tồn tại thì dừng hàm
@@ -483,6 +496,7 @@ window.battleAction = async function(action) {
 
     updateBattleUI();
   if (bossHP <= 0) {
+    bossMusic.pause();
         setTimeout(async () => {
             await typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
             setTimeout(() => {
@@ -509,6 +523,7 @@ async function bossTurn() {
     updateBattleUI();
 
     if (battleHP <= 0) {
+        bossMusic.pause();
         setTimeout(() => {
             document.getElementById('battle-screen').style.display = 'none';
             showStoryScreen('ending_bad'); 
