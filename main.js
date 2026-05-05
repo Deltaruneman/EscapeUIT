@@ -372,7 +372,12 @@ function canMoveTo(nextX, nextY) {
 
 window.onload = () => {
     enemies.forEach(enemy => enemy.savePosition());
-};let battleHP = 100;
+};
+
+// ============================================================
+//  BOSS BATTLE - UNDERTALE STYLE
+// ============================================================
+let battleHP = 100;
 let bossHP = 200;
 let isPlayerTurn = false;
 
@@ -395,6 +400,87 @@ let displayPlayerHP = 100;
 
 const BATTLE_W = 800, BATTLE_H = 600;
 const DODGE_BOX = { x: 250, y: 250, w: 300, h: 180 };
+
+
+
+
+const DialogManager = {
+    queue: [],
+    isTyping: false,
+    currentText: '',
+    fullText: '',
+    speed: 25,
+    resolve: null,
+
+    async show(text) {
+        return new Promise(res => {
+            this.queue.push({ text, res });
+            this.run();
+        });
+    },
+
+    async run() {
+        if (this.isTyping || this.queue.length === 0) return;
+
+        const { text, res } = this.queue.shift();
+        this.isTyping = true;
+        this.fullText = text;
+        this.currentText = '';
+
+        const box = document.getElementById('dialog-text');
+        box.innerText = '';
+
+        for (let i = 0; i < text.length; i++) {
+            this.currentText += text[i];
+            box.innerText = this.currentText;
+
+            if (this.skip) break;
+            await new Promise(r => setTimeout(r, this.speed));
+        }
+
+        box.innerText = text;
+        this.isTyping = false;
+        this.skip = false;
+
+        // chờ người chơi bấm tiếp
+        await this.waitForInput();
+
+        res();
+        this.run();
+    },
+
+    waitForInput() {
+        return new Promise(resolve => {
+            const handler = () => {
+                document.removeEventListener('keydown', handler);
+                resolve();
+            };
+            document.addEventListener('keydown', handler);
+        });
+    },
+
+    skipTyping() {
+        if (this.isTyping) {
+            this.skip = true;
+        }
+    }
+};
+
+
+
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'J' || e.code === 'Enter') {
+        DialogManager.skipTyping();
+    }
+});
+
+async function showDialogs(arr) {
+    for (let t of arr) {
+        await DialogManager.show(t);
+    }
+}
+
 
 // Tạo bullet patterns khác nhau
 function spawnBullets(pattern) {
