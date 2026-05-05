@@ -53,6 +53,7 @@ function showStoryScreen(type) {
         screen.style.display = 'flex';
         return;
     }  else if (type === "ending_good") {
+        bgMusic.pause();
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
         text.innerText = "CHÚC MỪNG! Bạn đã thật sự tìm được 4 mạnh ký ức, linh hồn của bạn trở nên mạnh mẽ hơn bao giờ hết và đã có thể giải thoát bạn khỏi đây!";
         footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
