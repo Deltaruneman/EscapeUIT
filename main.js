@@ -22,6 +22,13 @@ enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
+const bgMusic = new Audio('bgm.wav');
+bgMusic.loop = true; // Lặp lại nhạc nền
+bgMusic.volume = 0.5; // Điều chỉnh âm lượng (0.0 đến 1.0)
+
+const bossMusic = new Audio('LastChance42.wav');
+bossMusic.loop = true;
+bossMusic.volume = 0.6;
 
 function showStoryScreen(type) {
     isPaused = true;
@@ -53,6 +60,7 @@ function showStoryScreen(type) {
         return;
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
+        bossMusic.play();
         text.innerText = "Không... Ngươi không thể rời đi, ta sẽ giữ ngươi lại, tât cả các ngươi đều phải ở lại đây.";
         footer.innerHTML = '<button class="retry-btn" onclick="startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
         screen.style.display = 'flex';
@@ -107,11 +115,14 @@ window.onkeydown = (e) => {
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
 document.getElementById('start-btn').onclick = () => {
+
     document.getElementById('start-screen').style.display = 'none';
     showStoryScreen("intro");
+    bmgMusic.play();
 };
 
 function triggerJumpscare() {
+    bgmMusic.pause();
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
@@ -186,6 +197,7 @@ if (map[pr] && map[pr][pc] === 5) {
 
 
 function resumeGame() {
+    
     if(keysPressed['ESCAPE']) {
     isPaused = false;
     document.getElementById('pause-screen').style.display = 'none';
@@ -483,6 +495,7 @@ window.battleAction = async function(action) {
 
     updateBattleUI();
   if (bossHP <= 0) {
+    bossMusic.pause(); // Dừng nhạc boss khi nó chết
         setTimeout(async () => {
             await typeDialog("* Boss gục ngã! BẠN ĐÃ THỰC SỰ TỐT NGHIỆP TRƯỜNG UIT!");
             setTimeout(() => {
@@ -511,6 +524,7 @@ async function bossTurn() {
     if (battleHP <= 0) {
         setTimeout(() => {
             document.getElementById('battle-screen').style.display = 'none';
+            bossMusic.pause(); // Dừng nhạc boss khi bạn chết
             showStoryScreen('ending_bad'); 
         }, 2000);
         return;
