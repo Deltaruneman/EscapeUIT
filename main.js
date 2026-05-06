@@ -681,28 +681,35 @@ function dodgeLoop() {
 // HÀM KẾT THÚC LƯỢT NÉ ĐẠN (CHUYỂN TURN)
 // ============================================================
 function endDodgePhase() {
-    // 1. Nếu Player hết máu -> Xử lý Game Over
     if (battleHP <= 0) {
-        document.getElementById('battle-screen').style.display = 'none';
+            showStoryScreen('ending_bad');
         
-        // Hiện màn hình Game Over / Hồi sinh của bạn
-        const respawnMenu = document.getElementById('respawn-container');
-        if (respawnMenu) respawnMenu.style.display = 'flex';
-        
-        console.log("Player đã bay màu!");
-        return; // Dừng hàm tại đây
+        return;
     }
 
-    // 2. Nếu Player sống sót -> Đến lượt Player
     console.log("Sống sót qua đợt đạn, quay lại Menu!");
     
-    // Ẩn canvas né đạn (nếu cần) và Bật lại các nút lệnh (Fight, Act, Item, Mercy)
-    // Thay ID bằng đúng ID trong HTML của bạn nhé:
+    // 1. Tìm và bật khung Menu chứa 4 nút (Fight, Act, Item, Mercy)
+    // THAY 'battle-menu-container' BẰNG ĐÚNG ID TRONG HTML CỦA BẠN
     const battleMenu = document.getElementById('battle-menu-container'); 
-    if (battleMenu) battleMenu.style.display = 'block';
+    if (battleMenu) {
+        battleMenu.style.display = 'block'; // Hoặc 'flex' tùy CSS của bạn
+    } else {
+        console.error("LỖI: Không tìm thấy thẻ ID là 'battle-menu-container'");
+    }
 
-    // Cập nhật biến trạng thái lượt chơi (nếu có)
-    // currentTurn = 'player'; 
+    // 2. Tìm và bật khung Text/Hội thoại (nếu có)
+    // THAY 'dialogue-box' BẰNG ĐÚNG ID TRONG HTML CỦA BẠN
+    const dialogueBox = document.getElementById('dialogue-box');
+    if (dialogueBox) {
+        dialogueBox.style.display = 'block';
+        dialogueBox.innerText = "* Quái vật đang lườm bạn..."; // Reset lại text
+    } else {
+        console.error("LỖI: Không tìm thấy thẻ ID là 'dialogue-box'");
+    }
+
+    // 3. Reset lượt chơi về lại cho Player (tùy thuộc vào biến của bạn)
+    // currentTurn = 'player';
 }
 
 function showBattleMenu(show) {
