@@ -10,63 +10,26 @@ let deathCount = 0;
 let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
-let hopeCount = 0;
+let hopeCount = 0
 const player = { x: 400, y: 300, size: 25, speed: 3.2 };
 
 const enemies = [
-    new RedEnemy(50, 50, 2),
-    new GreenEnemy(200, 200, 1.5),
-    new PinkEnemy(600, 400, 1.8)
-];
-enemies[1].roomX = 1; enemies[1].roomY = 0; 
+    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
+    new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
+    new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
+];enemies[1].roomX = 1; enemies[1].roomY = 0; 
 enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
-
 const bgMusic = new Audio('bgm.wav');
-bgMusic.loop = true;
-bgMusic.volume = 0.5;
+bgMusic.loop = true; // Lặp lại nhạc nền
+bgMusic.volume = 0.5; // Điều chỉnh âm lượng (0.0 đến 1.0)
 
 const bossMusic = new Audio('LastChance42.wav');
 bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
-// ============================================================
-//  INVINCIBILITY FRAMES (thêm mới)
-// ============================================================
-let invincibleUntil = 0;
-function setInvincible(ms) { invincibleUntil = Date.now() + ms; }
-function isInvincible() { return Date.now() < invincibleUntil; }
-
-// ============================================================
-//  BOSS BATTLE VARS — khai báo sớm để tránh lỗi reference
-// ============================================================
-let battleHP = 100;
-let bossHP = 200;
-let isPlayerTurn = false;
-let hopeisused = false;
-
-let battleCanvas, battleCtx;
-let soul = { x: 200, y: 200, size: 12, speed: 4, _hitFlash: 0 };
-let bullets = [];
-let dodgeTimer = 0;
-let dodgeDuration = 0;
-let dodgeDamage = 0;
-let dodgeKeys = {};
-let dodgeActive = false;
-let bossPhaseIndex = 0;
-let displayBossHP = 200;
-let displayPlayerHP = 100;
-let isTyping = false;
-let skipDialog = false;
-
-const BATTLE_W = 800, BATTLE_H = 600;
-const DODGE_BOX = { x: 250, y: 220, w: 300, h: 200 };
-
-// ============================================================
-//  STORY SCREEN
-// ============================================================
 function showStoryScreen(type) {
     isPaused = true;
     storyMode = type;
@@ -74,6 +37,7 @@ function showStoryScreen(type) {
     const img = document.getElementById('story-img');
     const text = document.getElementById('story-text');
     const footer = document.getElementById('story-footer');
+    const pause = document.getElementById('pause-screen');
 
     let data;
     if (type === "intro") data = storyScenes[currentStoryIdx];
@@ -88,27 +52,25 @@ function showStoryScreen(type) {
         footer.innerHTML = '<button class="retry-btn" onclick="location.reload()">CHƠI LẠI</button>';
         screen.style.display = 'flex';
         return;
-    } else if (type === "ending_good") {
+    }  else if (type === "ending_good") {
         bgMusic.pause();
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
-        text.innerText = "CHÚC MỪNG! Bạn đã thật sự tìm được 4 mảnh ký ức, linh hồn của bạn trở nên mạnh mẽ hơn bao giờ hết và đã có thể giải thoát bạn khỏi đây!";
+        text.innerText = "CHÚC MỪNG! Bạn đã thật sự tìm được 4 mạnh ký ức, linh hồn của bạn trở nên mạnh mẽ hơn bao giờ hết và đã có thể giải thoát bạn khỏi đây!";
         footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
         screen.style.display = 'flex';
         return;
     } else if (type === "plot_twist") {
         img.src = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800"; 
         bossMusic.play();
-        text.innerText = "Không... Ngươi không thể rời đi, ta sẽ giữ ngươi lại, tất cả các ngươi đều phải ở lại đây.";
+        text.innerText = "Không... Ngươi không thể rời đi, ta sẽ giữ ngươi lại, tât cả các ngươi đều phải ở lại đây.";
         footer.innerHTML = '<button class="retry-btn" onclick="startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
         screen.style.display = 'flex';
         return;
     }
 
-    if (!data) return;
-    img.src = data.img || '';
+
+    img.src = data.img;
     text.innerText = data.text;
-    // FIX: thêm hint text cho story screen
-    footer.innerText = "(Bấm [J] hoặc [Enter] để tiếp tục)";
     screen.style.display = 'flex';
 }
 
@@ -128,7 +90,8 @@ function handleNextStory() {
             document.getElementById('story-screen').style.display = 'none';
             isPaused = false;
         }
-    } else if (storyMode === "hidden_item") {
+    }
+    else if (storyMode === "hidden_item") {
         document.getElementById('story-screen').style.display = 'none';
         isPaused = false;
     }
@@ -144,95 +107,58 @@ function isColliding(x, y, size, rX, rY) {
     return false;
 }
 
-// ============================================================
-//  INPUT
-// ============================================================
+// Input Xử lý mượt mà
 const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
-    dodgeKeys[e.code] = true;
-    if ((e.code === 'KeyJ' || e.code === 'Enter' || e.code === 'NumpadEnter') && isTyping) {
-        skipDialog = true;
-    }
-    if (isPaused && !dodgeActive && (e.code === 'KeyJ' || e.code === 'Enter')) handleNextStory();
-    if (e.code === 'Escape') {
-        if (gameRunning && !dodgeActive) {
-            isPaused = !isPaused;
-            document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
-        }
-    }
+    if (isPaused && (e.code === 'KeyJ'||e.code === 'Enter')) handleNextStory();
 };
-window.onkeyup = (e) => {
-    keysPressed[e.code] = false;
-    dodgeKeys[e.code] = false;
-};
+window.onkeyup = (e) => keysPressed[e.code] = false;
 
 document.getElementById('start-btn').onclick = () => {
-    bgMusic.play().catch(() => {});
+  bgMusic.play();
     document.getElementById('start-screen').style.display = 'none';
     showStoryScreen("intro");
+  
 };
 
-// ============================================================
-//  JUMPSCARE / DEATH
-// ============================================================
 function triggerJumpscare() {
-    if (isInvincible()) return;
     bgMusic.pause();
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
-    setInvincible(2500);
     document.getElementById('jumpscare-overlay').style.display = 'block';
+    
     document.getElementById('jumpscare-img').src = "nomon.gif"; 
 
     setTimeout(() => {
         document.getElementById('jumpscare-overlay').style.display = 'none';
-        if (deathCount >= 5) showStoryScreen("ending_bad");
+        if (deathCount == 5) showStoryScreen("ending_bad");
         else {
             player.x = 400; player.y = 300;
             currentRoomX = 0; currentRoomY = 0; 
             gameRunning = true;
-            bgMusic.play().catch(() => {});
         }
     }, 1500);
-}
-
-// ============================================================
-//  GAME UPDATE + DRAW
-// ============================================================
-function canMoveTo(nextX, nextY) {
-    const points = [
-        { x: nextX, y: nextY },
-        { x: nextX + player.size, y: nextY },
-        { x: nextX, y: nextY + player.size },
-        { x: nextX + player.size, y: nextY + player.size }
-    ];
-    const map = getMap(currentRoomX, currentRoomY);
-    for (let p of points) {
-        let col = Math.floor(p.x / TILE_SIZE);
-        let row = Math.floor(p.y / TILE_SIZE);
-        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) continue;
-        let tile = map[row][col];
-        if (tile === 1) return false;
-    }
-    return true;
 }
 
 function update() {
     if (!gameRunning || isPaused) return;
 
-    // FIX: khai báo nx, ny đúng chỗ
     let nx = player.x, ny = player.y;
-    if (keysPressed['KeyW'] || keysPressed['ArrowUp'])    ny -= player.speed;
-    if (keysPressed['KeyS'] || keysPressed['ArrowDown'])  ny += player.speed;
-    if (keysPressed['KeyA'] || keysPressed['ArrowLeft'])  nx -= player.speed;
-    if (keysPressed['KeyD'] || keysPressed['ArrowRight']) nx += player.speed;
-
+    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
+    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
+    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
+    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
+    if (canMoveTo(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+    }
+    if (keysPressed['KeyP']) 
+   showStoryScreen("ending_good");
+    
     if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
     if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
-
-    if (keysPressed['KeyP']) showStoryScreen("ending_good");
 
     if (player.x < -15) { currentRoomX--; player.x = 780; }
     else if (player.x > 790) { currentRoomX++; player.x = 10; }
@@ -242,23 +168,27 @@ function update() {
     const map = getMap(currentRoomX, currentRoomY);
     let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
     
+    // Nhặt chìa khóa
     if (map[pr] && map[pr][pc] === 3) {
         map[pr][pc] = 0;
         keysFound++;
+        const countUI = document.getElementById('key-count');   
         document.getElementById('key-count').innerText = keysFound;
+        if (countUI) countUI.innerText = keysFound;
         showStoryScreen("key"); 
     }
-    if (map[pr] && map[pr][pc] === 5) {
+if (map[pr] && map[pr][pc] === 5) {
         map[pr][pc] = 0;
         hiddenItemsFound++;
+
         const countUI = document.getElementById('item-count');
         if (countUI) countUI.innerText = hiddenItemsFound;
         showStoryScreen("hidden_item"); 
     }
-
     enemies.forEach(enemy => {
         enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        if (!isInvincible() && currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
             if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
                 triggerJumpscare();
             }
@@ -266,6 +196,13 @@ function update() {
     });
 }
 
+
+function resumeGame() {
+    
+    if(keysPressed['ESCAPE']) {
+    isPaused = false;
+    document.getElementById('pause-screen').style.display = 'none';
+}}
 function draw() {
     ctx.fillStyle = "#000"; ctx.fillRect(0,0,800,600);
     const map = getMap(currentRoomX, currentRoomY);
@@ -274,78 +211,258 @@ function draw() {
             if(map[r][c]===1) { ctx.fillStyle="#121212"; ctx.fillRect(c*50, r*50, 50, 50); }
             if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
             if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
-            if(map[r][c]===4) { ctx.fillStyle="#003300"; ctx.fillRect(c*50, r*50, 50, 50); }
+            if(map[r][c]===4) { ctx.fillStyle="green"; ctx.fillRect(c*50, r*50, 50, 50); };
         }
     }
-    enemies.forEach(enemy => enemy.draw(ctx, currentRoomX, currentRoomY));
-    // Player — nhấp nháy khi bất tử
-    ctx.fillStyle = isInvincible() && Math.floor(Date.now()/100)%2===0 ? '#aaddff' : "#007bff";
-    ctx.fillRect(player.x, player.y, 25, 25);
-    // Vignette
+    
+    // Gọi hàm vẽ Enemy
+  enemies.forEach(enemy => enemy.draw(ctx, currentRoomX, currentRoomY));
+    
+    // Vẽ Player
+    ctx.fillStyle = "#007bff"; ctx.fillRect(player.x, player.y, 25, 25);
+
+    // Sương mù (Vignette effect)
     const grad = ctx.createRadialGradient(player.x+12, player.y+12, 50, player.x+12, player.y+12, 150);
     grad.addColorStop(0, "transparent"); grad.addColorStop(1, "rgba(0,0,0,0.8)");
     ctx.fillStyle = grad; ctx.fillRect(0,0,800,600);
 }
 
-// FIX: CHỈ 1 game loop duy nhất
+
+
+function gameLoop() {
+    if (!isPaused && gameRunning) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+        updatePlayer();
+        updateEnemies();
+        renderGame();
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+function updatePlayer() {
+    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
+    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
+    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
+    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
+    if (canMoveTo(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
+    }
+    if (keysPressed['KeyP']) 
+   showStoryScreen("ending_good");
+    
+    if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
+    if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
+
+    if (player.x < -15) { currentRoomX--; player.x = 780; }
+    else if (player.x > 790) { currentRoomX++; player.x = 10; }
+    if (player.y < -15) { currentRoomY--; player.y = 580; }
+    else if (player.y > 590) { currentRoomY++; player.y = 10; }
+
+    const map = getMap(currentRoomX, currentRoomY);
+    let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
+    
+    // Nhặt chìa khóa
+    if (map[pr] && map[pr][pc] === 3) {
+        map[pr][pc] = 0;
+        keysFound++;
+        const countUI = document.getElementById('key-count');   
+        document.getElementById('key-count').innerText = keysFound;
+        if (countUI) countUI.innerText = keysFound;
+        showStoryScreen("key"); 
+    }
+if (map[pr] && map[pr][pc] === 5) {
+        map[pr][pc] = 0;
+        hiddenItemsFound++;
+
+        const countUI = document.getElementById('item-count');
+        if (countUI) countUI.innerText = hiddenItemsFound;
+        showStoryScreen("hidden_item"); 
+    }
+    enemies.forEach(enemy => {
+        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+                triggerJumpscare();
+            }
+        }
+    });
+}
+
+function updateEnemies() {
+    enemies.forEach(enemy => {
+        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        
+        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
+            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
+                triggerJumpscare();
+            }
+        }
+    });
+}
+
+function renderGame() {
+    draw();
+}
+
 function loop() { 
     update(); 
     draw(); 
     requestAnimationFrame(loop); 
 }
+
+// Chạy vòng lặp
 loop();
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        isPaused = !isPaused; // Toggle pause state
+        const pauseScreen = document.getElementById('pause-screen');
+        if (isPaused) {
+            pauseScreen.style.display = 'flex'; // Show pause screen
+        } else {
+            pauseScreen.style.display = 'none'; // Hide pause screen
+        }
+    }
+});
+
+document.getElementById('respawn-btn').onclick = () => {
+    player.x = 400; // Reset player position
+    player.y = 300;
+    enemies.forEach(enemy => enemy.respawn()); // Restore all enemies to their saved positions
+    deathCount++;
+    isPaused = false;
+    gameRunning = true;
+};
+function canMoveTo(nextX, nextY) {
+
+    const points = [
+        { x: nextX, y: nextY },
+        { x: nextX + player.size, y: nextY },
+        { x: nextX, y: nextY + player.size },
+        { x: nextX + player.size, y: nextY + player.size }
+    ];
+
+    const map = getMap(currentRoomX, currentRoomY);
+
+    for (let p of points) {
+        let col = Math.floor(p.x / TILE_SIZE);
+        let row = Math.floor(p.y / TILE_SIZE);
+
+        // Kiểm tra nếu đi ra ngoài biên map
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) continue;
+
+        let tile = map[row][col];
+
+        // Nếu là tường (1) -> Không cho đi
+        if (tile === 1) return false;
+
+        // BỎ chặn ô số 4: Giờ nó là Safe Zone nên cho phép Player bước vào thoải mái!
+        if (tile === 4) {
+            if(hopeCount>5) 
+            return true; 
+        }
+    }
+    return true;
+    
+}
 
 window.onload = () => {
     enemies.forEach(enemy => enemy.savePosition());
 };
 
-document.getElementById('respawn-btn').onclick = () => {
-    player.x = 400;
-    player.y = 300;
-    bgMusic.play().catch(() => {});
-    enemies.forEach(enemy => enemy.respawn());
-    isPaused = false;
-    gameRunning = true;
-    document.getElementById('respawn-container').style.display = 'none';
-};
-
 // ============================================================
 //  BOSS BATTLE - UNDERTALE STYLE
 // ============================================================
+let battleHP = 100;
+let bossHP = 200;
+let isPlayerTurn = false;
 
-// FIX: typeDialog dùng đúng ID '#battle-dialog' có trong HTML
+// --- Bullet hell mini-game ---
+let battleCanvas, battleCtx;
+let battlePhase = 'menu'; // 'menu' | 'dodge' | 'result'
+let soul = { x: 200, y: 200, size: 12, speed: 4 };
+let bullets = [];
+let dodgeTimer = 0;
+let dodgeDuration = 0;
+let dodgeDamage = 0;
+let dodgeKeys = {};
+let dodgeActive = false;
+let bossShakeUntil = 0;
+let bossPhaseIndex = 0; // 0=normal, 1=angry (HP<100), 2=desperate (HP<50)
+
+// HP bar animation
+let displayBossHP = 200;
+let displayPlayerHP = 100;
+
+const BATTLE_W = 800, BATTLE_H = 600;
+const DODGE_BOX = { x: 250, y: 250, w: 300, h: 180 };
+
+
+let isTyping = false;
+let skipDialog = false;
+
+
+document.addEventListener('keydown', (e) => {
+    // Nếu đang gõ chữ và người dùng bấm J hoặc Enter
+    if ((e.code === 'KeyJ' || e.code === 'Enter' || e.code === 'NumpadEnter') && isTyping) {
+        skipDialog = true;
+    }
+});
+// Thay đổi 'dialog-box' thành ID của thẻ HTML hiển thị text trong game của bạn
 function typeDialog(text) {
     return new Promise((resolve) => {
-        const dialogEl = document.getElementById('battle-dialog');
-        if (!dialogEl) { return resolve(); }
+        // Lấy element hiển thị text (bạn nhớ sửa ID cho đúng với HTML của bạn nhé)
+        const dialogEl = document.getElementById('dialog-text'); 
+        if (!dialogEl) {
+            console.warn("Không tìm thấy thẻ hiển thị hội thoại!");
+            return resolve();
+        }
 
-        dialogEl.textContent = '';
+        // Reset trạng thái
+        dialogEl.innerHTML = '';
         isTyping = true;
         skipDialog = false;
         let i = 0;
 
         function typeNextChar() {
+            // NẾU NGƯỜI CHƠI BẤM SKIP
             if (skipDialog) {
-                dialogEl.textContent = text;
+                dialogEl.innerHTML = text; // Hiện full text ngay lập tức
                 isTyping = false;
-                setTimeout(resolve, 500);
+                
+                // Đợi một chút để người chơi kịp đọc (hoặc bấm lần nữa để qua luôn)
+                setTimeout(resolve, 800); 
                 return;
             }
+
+            // NẾU CHƯA SKIP, TIẾP TỤC GÕ TỪNG CHỮ
             if (i < text.length) {
-                dialogEl.textContent += text.charAt(i);
+                dialogEl.innerHTML += text.charAt(i);
                 i++;
-                setTimeout(typeNextChar, 35);
+                setTimeout(typeNextChar, 30); // Tốc độ gõ (30ms/chữ)
             } else {
+                // Đã gõ xong toàn bộ
                 isTyping = false;
-                setTimeout(resolve, 800);
+                setTimeout(resolve, 1000); // Tự động tắt sau 1s nếu không ai bấm gì
             }
         }
+
         typeNextChar();
     });
 }
 
-// Bullet patterns
+
+
+
+
+
+// Tạo bullet patterns khác nhau
 function spawnBullets(pattern) {
+    bullets = [];
     if (pattern === 'rain') {
         for (let i = 0; i < 8 + bossPhaseIndex * 3; i++) {
             bullets.push({
@@ -369,6 +486,7 @@ function spawnBullets(pattern) {
             });
         }
     } else if (pattern === 'wall') {
+        // Tường đạn từ trái sang phải có khe hở
         let gapY = DODGE_BOX.y + 30 + Math.random() * (DODGE_BOX.h - 60);
         for (let y = DODGE_BOX.y; y < DODGE_BOX.y + DODGE_BOX.h; y += 22) {
             if (Math.abs(y - gapY) > 28) {
@@ -380,6 +498,7 @@ function spawnBullets(pattern) {
             }
         }
     } else if (pattern === 'aimed') {
+        // Đạn nhắm thẳng vào soul
         let cx = DODGE_BOX.x + DODGE_BOX.w/2;
         let count = 5 + bossPhaseIndex * 2;
         for (let i = 0; i < count; i++) {
@@ -417,6 +536,7 @@ function updateBossPhase() {
 }
 
 function animateHP() {
+    // Smooth HP bar animation
     if (displayBossHP > bossHP) displayBossHP = Math.max(bossHP, displayBossHP - 2.5);
     if (displayPlayerHP > battleHP) displayPlayerHP = Math.max(battleHP, displayPlayerHP - 1.5);
     
@@ -424,13 +544,11 @@ function animateHP() {
     const playerFill = document.getElementById('player-hp-bar-fill');
     if (bossFill) bossFill.style.width = Math.max(0, (displayBossHP/200)*100) + '%';
     if (playerFill) playerFill.style.width = Math.max(0, (displayPlayerHP/100)*100) + '%';
-    const pNum = document.getElementById('player-hp');
-    const bNum = document.getElementById('boss-hp');
-    if (pNum) pNum.innerText = Math.ceil(displayPlayerHP);
-    if (bNum) bNum.innerText = Math.ceil(displayBossHP);
+    document.getElementById('player-hp').innerText = Math.ceil(displayPlayerHP);
+    document.getElementById('boss-hp').innerText = Math.ceil(displayBossHP);
 }
 
-// Dodge loop
+// Vòng lặp dodge mini-game
 function dodgeLoop() {
     if (!dodgeActive) return;
     const bctx = getBattleCanvas();
@@ -442,51 +560,47 @@ function dodgeLoop() {
     bctx.strokeRect(DODGE_BOX.x, DODGE_BOX.y, DODGE_BOX.w, DODGE_BOX.h);
 
     // Timer bar
+    let elapsed = Date.now() - (dodgeDuration - dodgeTimer * 1000);
     let progress = Math.max(0, dodgeTimer / (dodgeDuration/1000));
     bctx.fillStyle = '#333';
     bctx.fillRect(DODGE_BOX.x, DODGE_BOX.y + DODGE_BOX.h + 8, DODGE_BOX.w, 8);
     bctx.fillStyle = progress > 0.3 ? '#00ff88' : '#ff4400';
     bctx.fillRect(DODGE_BOX.x, DODGE_BOX.y + DODGE_BOX.h + 8, DODGE_BOX.w * progress, 8);
 
-    // Label
-    bctx.fillStyle = '#aaa';
-    bctx.font = '13px Courier New';
-    bctx.fillText('DODGE! [WASD]', DODGE_BOX.x + 4, DODGE_BOX.y - 8);
-
-    // Di chuyển soul
+    // Di chuyển soul trong dodge box
     if (dodgeKeys['ArrowLeft'] || dodgeKeys['KeyA']) soul.x -= soul.speed;
     if (dodgeKeys['ArrowRight'] || dodgeKeys['KeyD']) soul.x += soul.speed;
     if (dodgeKeys['ArrowUp'] || dodgeKeys['KeyW']) soul.y -= soul.speed;
     if (dodgeKeys['ArrowDown'] || dodgeKeys['KeyS']) soul.y += soul.speed;
+
+    // Clamp trong box
     soul.x = Math.max(DODGE_BOX.x + soul.size, Math.min(DODGE_BOX.x + DODGE_BOX.w - soul.size, soul.x));
     soul.y = Math.max(DODGE_BOX.y + soul.size, Math.min(DODGE_BOX.y + DODGE_BOX.h - soul.size, soul.y));
 
     // Update & vẽ bullets
-    let hitThisFrame = false;
-    bullets = bullets.filter(b => {
+    bullets = bullets.filter(b => b.x > DODGE_BOX.x - 20 && b.x < DODGE_BOX.x + DODGE_BOX.w + 20
+                                  && b.y > DODGE_BOX.y - 20 && b.y < DODGE_BOX.y + DODGE_BOX.h + 20);
+    for (let b of bullets) {
         b.x += b.vx; b.y += b.vy;
-        if (b.x < DODGE_BOX.x - 20 || b.x > DODGE_BOX.x + DODGE_BOX.w + 20 ||
-            b.y < DODGE_BOX.y - 20 || b.y > DODGE_BOX.y + DODGE_BOX.h + 20) return false;
         bctx.fillStyle = b.color;
         if (b.shape === 'square') {
             bctx.fillRect(b.x - b.size/2, b.y - b.size/2, b.size, b.size);
         } else {
             bctx.beginPath(); bctx.arc(b.x, b.y, b.size/2, 0, Math.PI*2); bctx.fill();
         }
-        if (!hitThisFrame && Math.hypot(b.x - soul.x, b.y - soul.y) < (b.size/2 + soul.size/2 - 2)) {
-            hitThisFrame = true;
+        // Hit check
+        if (Math.hypot(b.x - soul.x, b.y - soul.y) < (b.size/2 + soul.size/2 - 2)) {
+            battleHP -= dodgeDamage;
+            displayPlayerHP = battleHP;
+            animateHP();
+            // Flash soul
             soul._hitFlash = 8;
+            bullets.splice(bullets.indexOf(b), 1);
+            break;
         }
-        return true;
-    });
-
-    if (hitThisFrame) {
-        battleHP = Math.max(0, battleHP - dodgeDamage);
-        displayPlayerHP = battleHP;
-        animateHP();
     }
 
-    // Vẽ soul (trái tim Undertale)
+    // Vẽ soul (trái tim đỏ Undertale)
     bctx.save();
     bctx.fillStyle = soul._hitFlash > 0 ? 'white' : '#ff0055';
     if (soul._hitFlash > 0) soul._hitFlash--;
@@ -498,10 +612,11 @@ function dodgeLoop() {
     bctx.fill();
     bctx.restore();
 
+    // Countdown
     dodgeTimer -= 1/60;
     if (dodgeTimer <= 0 || battleHP <= 0) {
         dodgeActive = false;
-        battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
+        bctx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         bullets = [];
         endDodgePhase();
     } else {
@@ -520,6 +635,7 @@ async function endDodgePhase() {
         }, 2500);
         return;
     }
+    // Sau khi dodge xong → hiện menu lại
     const phaseDialogs = [
         "* Tốt lắm... nhưng ta chưa xong đâu!",
         "* Ngươi... mạnh hơn ta nghĩ. Ta sẽ nghiêm túc hơn!",
@@ -531,8 +647,7 @@ async function endDodgePhase() {
 }
 
 function showBattleMenu(show) {
-    const menu = document.querySelector('.battle-menu');
-    if (menu) menu.style.visibility = show ? 'visible' : 'hidden';
+    document.querySelector('.battle-menu').style.visibility = show ? 'visible' : 'hidden';
 }
 
 async function startDodgePhase(damage, duration, patterns) {
@@ -546,6 +661,7 @@ async function startDodgePhase(damage, duration, patterns) {
     soul._hitFlash = 0;
     bullets = [];
 
+    // Spawn patterns theo thứ tự
     for (let i = 0; i < patterns.length; i++) {
         setTimeout(() => { if(dodgeActive) spawnBullets(patterns[i]); }, i * (duration * 1000 / patterns.length));
     }
@@ -563,7 +679,7 @@ async function startDodgePhase(damage, duration, patterns) {
 window.startBossBattle = function() {
     bgMusic.pause();
     bgMusic.currentTime = 0;
-    bossMusic.play().catch(() => {});
+    bossMusic.play();
 
     document.getElementById('story-screen').style.display = 'none';
     isPaused = true;
@@ -580,7 +696,7 @@ window.startBossBattle = function() {
     const battleScreen = document.getElementById('battle-screen');
     battleScreen.style.setProperty("display", "flex", "important");
 
-    // Build HP bars
+    // Build HP bars nếu chưa có
     if (!document.getElementById('boss-hp-bar-fill')) {
         const stats = document.querySelector('.battle-stats');
         stats.innerHTML = `
@@ -609,6 +725,12 @@ window.startBossBattle = function() {
     });
 };
 
+// Keyboard cho dodge
+document.addEventListener('keydown', e => { dodgeKeys[e.code] = true; });
+document.addEventListener('keyup', e => { dodgeKeys[e.code] = false; });
+
+let hopeisused = false;
+
 window.battleAction = async function(action) {
     if (!isPlayerTurn) return;
     isPlayerTurn = false;
@@ -618,6 +740,7 @@ window.battleAction = async function(action) {
         let dmg = Math.floor(Math.random() * 20) + 15 + (bossPhaseIndex === 2 ? 5 : 0);
         bossHP = Math.max(0, bossHP - dmg);
         updateBossPhase();
+        // Boss shake effect
         const bossImg = document.querySelector('.battle-scene img');
         if (bossImg) { bossImg.style.filter = 'drop-shadow(0 0 10px red) brightness(3)'; setTimeout(() => bossImg.style.filter = 'drop-shadow(0 0 10px red)', 300); }
         await typeDialog(`* Dùng chính sự quyết tâm ${bossPhaseIndex >= 1 ? 'và tức giận ' : ''}của mình, bạn gây ${dmg} sát thương!`);
@@ -628,7 +751,7 @@ window.battleAction = async function(action) {
             bossHP = Math.max(0, bossHP - dmg);
             hopeisused = true;
             updateBossPhase();
-            await typeDialog(`* ${hiddenItemsFound} mảnh ký ức bùng sáng! UIT cộng hưởng với bạn — Boss nhận ${dmg} sát thương khổng lồ!`);
+            await typeDialog(`* ${hiddenItemsFound} mảnh ký ức bùng sáng! UIT cộng hưởng với bạn — Boss nhận ${dmg} sát thương KHỔng lồ!`);
         } else if (hopeisused) {
             await typeDialog(`* Bạn đã dùng hết những ký ức đó rồi... nhưng chúng vẫn sống trong tim bạn.`);
             let heal = 10; battleHP = Math.min(100, battleHP + heal);
@@ -651,7 +774,7 @@ window.battleAction = async function(action) {
 
     if (bossHP <= 0) {
         bossMusic.pause();
-        if (battleCanvas) { battleCanvas.remove(); battleCanvas = null; }
+        if (battleCanvas) battleCanvas.remove(), battleCanvas = null;
         await typeDialog("* N... Không thể... Sao một sinh viên lại có thể...");
         await new Promise(r => setTimeout(r, 1000));
         await typeDialog("* ...Chúc mừng tốt nghiệp. Bạn xứng đáng.");
@@ -662,6 +785,7 @@ window.battleAction = async function(action) {
         return;
     }
 
+    // Boss turn — chọn pattern theo phase
     const patterns = {
         0: [['rain'], ['aimed'], ['rain', 'aimed']],
         1: [['spiral'], ['wall'], ['aimed', 'wall']],
@@ -669,7 +793,7 @@ window.battleAction = async function(action) {
     };
     const pSet = patterns[bossPhaseIndex];
     const chosenPattern = pSet[Math.floor(Math.random() * pSet.length)];
-    const dodgeDur = 4 + bossPhaseIndex * 1.5;
+    const dodgeDur = 4 + bossPhaseIndex * 1.5; // giây dodge tăng theo phase
 
     await startDodgePhase(bossPhaseIndex === 2 ? 8 : (bossPhaseIndex === 1 ? 5 : 3), dodgeDur, chosenPattern);
 };
