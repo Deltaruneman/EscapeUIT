@@ -677,6 +677,33 @@ function dodgeLoop() {
         requestAnimationFrame(dodgeLoop);
     }
 }
+// ============================================================
+// HÀM KẾT THÚC LƯỢT NÉ ĐẠN (CHUYỂN TURN)
+// ============================================================
+function endDodgePhase() {
+    // 1. Nếu Player hết máu -> Xử lý Game Over
+    if (battleHP <= 0) {
+        document.getElementById('battle-screen').style.display = 'none';
+        
+        // Hiện màn hình Game Over / Hồi sinh của bạn
+        const respawnMenu = document.getElementById('respawn-container');
+        if (respawnMenu) respawnMenu.style.display = 'flex';
+        
+        console.log("Player đã bay màu!");
+        return; // Dừng hàm tại đây
+    }
+
+    // 2. Nếu Player sống sót -> Đến lượt Player
+    console.log("Sống sót qua đợt đạn, quay lại Menu!");
+    
+    // Ẩn canvas né đạn (nếu cần) và Bật lại các nút lệnh (Fight, Act, Item, Mercy)
+    // Thay ID bằng đúng ID trong HTML của bạn nhé:
+    const battleMenu = document.getElementById('battle-menu-container'); 
+    if (battleMenu) battleMenu.style.display = 'block';
+
+    // Cập nhật biến trạng thái lượt chơi (nếu có)
+    // currentTurn = 'player'; 
+}
 
 function showBattleMenu(show) {
     document.querySelector('.battle-menu').style.visibility = show ? 'visible' : 'hidden';
