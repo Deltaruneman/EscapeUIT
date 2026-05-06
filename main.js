@@ -115,12 +115,34 @@ window.onkeydown = (e) => {
 };
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
-document.getElementById('start-btn').onclick = () => {
-  bgMusic.play();
-    document.getElementById('start-screen').style.display = 'none';
-    showStoryScreen("intro");
-  
-};
+// ============================================================
+//  GẮN SỰ KIỆN GIAO DIỆN CHUẨN
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+    // Xử lý nút Start
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn) {
+        startBtn.onclick = () => {
+            bgMusic.play().catch(() => {});
+            document.getElementById('start-screen').style.display = 'none';
+            showStoryScreen("intro");
+        };
+    }
+
+    // Xử lý nút Chơi lại khi chết
+    const respawnBtn = document.getElementById('respawn-btn');
+    if (respawnBtn) {
+        respawnBtn.onclick = () => {
+            player.x = 400;
+            player.y = 300;
+            bgMusic.play().catch(() => {});
+            enemies.forEach(enemy => enemy.respawn());
+            isPaused = false;
+            gameRunning = true;
+            document.getElementById('respawn-container').style.display = 'none';
+        };
+    }
+});
 
 function triggerJumpscare() {
     bgMusic.pause();
@@ -329,14 +351,7 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-document.getElementById('respawn-btn').onclick = () => {
-    player.x = 400; // Reset player position
-    player.y = 300;
-    enemies.forEach(enemy => enemy.respawn()); // Restore all enemies to their saved positions
-    deathCount++;
-    isPaused = false;
-    gameRunning = true;
-};
+
 function canMoveTo(nextX, nextY) {
 
     const points = [
