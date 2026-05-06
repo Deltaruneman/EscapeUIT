@@ -550,20 +550,50 @@ function updateBossPhase() {
     else bossPhaseIndex = 0;
 }
 
+
+
+// ============================================================
+// 1. SỬA HÀM ANIMATE HP (Chống giật/chồng chéo vòng lặp)
+// ============================================================
+let hpAnimId; // Biến lưu trữ ID của vòng lặp để hủy khi cần
 function animateHP() {
-    // Smooth HP bar animation
-    if (displayBossHP > bossHP) displayBossHP = Math.max(bossHP, displayBossHP - 2.5);
-    if (displayPlayerHP > battleHP) displayPlayerHP = Math.max(battleHP, displayPlayerHP - 1.5);
+    if (hpAnimId) cancelAnimationFrame(hpAnimId); // Dọn dẹp vòng lặp cũ trước khi chạy mới
+    
+    let isAnimating = false;
+
+    // Giảm mượt thanh Boss
+    if (displayBossHP > bossHP) { 
+        displayBossHP = Math.max(bossHP, displayBossHP - 2.5); 
+        isAnimating = true; 
+    }
+    // Giảm hoặc Hồi mượt thanh Player
+    if (displayPlayerHP > battleHP) { 
+        displayPlayerHP = Math.max(battleHP, displayPlayerHP - 1.5); 
+        isAnimating = true; 
+    } else if (displayPlayerHP < battleHP) {
+        displayPlayerHP = Math.min(battleHP, displayPlayerHP + 1.5);
+        isAnimating = true;
+    }
     
     const bossFill = document.getElementById('boss-hp-bar-fill');
     const playerFill = document.getElementById('player-hp-bar-fill');
     if (bossFill) bossFill.style.width = Math.max(0, (displayBossHP/200)*100) + '%';
     if (playerFill) playerFill.style.width = Math.max(0, (displayPlayerHP/100)*100) + '%';
-    document.getElementById('player-hp').innerText = Math.ceil(displayPlayerHP);
-    document.getElementById('boss-hp').innerText = Math.ceil(displayBossHP);
+    
+    const pNum = document.getElementById('player-hp');
+    const bNum = document.getElementById('boss-hp');
+    if (pNum) pNum.innerText = Math.ceil(displayPlayerHP);
+    if (bNum) bNum.innerText = Math.ceil(displayBossHP);
+
+    // Tiếp tục gọi lặp tới khi đạt đúng target
+    if (isAnimating) {
+        hpAnimId = requestAnimationFrame(animateHP);
+    }
 }
 
-// Vòng lặp dodge mini-game
+// ============================================================
+// 2. SỬA HÀM DODGELOOP (Thêm khung hình bất tử - I-frames)
+// ============================================================
 function dodgeLoop() {
     if (!dodgeActive) return;
     const bctx = getBattleCanvas();
@@ -575,50 +605,60 @@ function dodgeLoop() {
     bctx.strokeRect(DODGE_BOX.x, DODGE_BOX.y, DODGE_BOX.w, DODGE_BOX.h);
 
     // Timer bar
-    let elapsed = Date.now() - (dodgeDuration - dodgeTimer * 1000);
     let progress = Math.max(0, dodgeTimer / (dodgeDuration/1000));
     bctx.fillStyle = '#333';
     bctx.fillRect(DODGE_BOX.x, DODGE_BOX.y + DODGE_BOX.h + 8, DODGE_BOX.w, 8);
     bctx.fillStyle = progress > 0.3 ? '#00ff88' : '#ff4400';
     bctx.fillRect(DODGE_BOX.x, DODGE_BOX.y + DODGE_BOX.h + 8, DODGE_BOX.w * progress, 8);
 
-    // Di chuyển soul trong dodge box
+    // Label
+    bctx.fillStyle = '#aaa';
+    bctx.font = '13px Courier New';
+    bctx.fillText('DODGE! [WASD]', DODGE_BOX.x + 4, DODGE_BOX.y - 8);
+
+    // Di chuyển soul
     if (dodgeKeys['ArrowLeft'] || dodgeKeys['KeyA']) soul.x -= soul.speed;
     if (dodgeKeys['ArrowRight'] || dodgeKeys['KeyD']) soul.x += soul.speed;
     if (dodgeKeys['ArrowUp'] || dodgeKeys['KeyW']) soul.y -= soul.speed;
     if (dodgeKeys['ArrowDown'] || dodgeKeys['KeyS']) soul.y += soul.speed;
-
-    // Clamp trong box
     soul.x = Math.max(DODGE_BOX.x + soul.size, Math.min(DODGE_BOX.x + DODGE_BOX.w - soul.size, soul.x));
     soul.y = Math.max(DODGE_BOX.y + soul.size, Math.min(DODGE_BOX.y + DODGE_BOX.h - soul.size, soul.y));
 
     // Update & vẽ bullets
-    bullets = bullets.filter(b => b.x > DODGE_BOX.x - 20 && b.x < DODGE_BOX.x + DODGE_BOX.w + 20
-                                  && b.y > DODGE_BOX.y - 20 && b.y < DODGE_BOX.y + DODGE_BOX.h + 20);
-    for (let b of bullets) {
+    let hitThisFrame = false;
+    bullets = bullets.filter(b => {
         b.x += b.vx; b.y += b.vy;
+        if (b.x < DODGE_BOX.x - 20 || b.x > DODGE_BOX.x + DODGE_BOX.w + 20 ||
+            b.y < DODGE_BOX.y - 20 || b.y > DODGE_BOX.y + DODGE_BOX.h + 20) return false;
+        
         bctx.fillStyle = b.color;
         if (b.shape === 'square') {
             bctx.fillRect(b.x - b.size/2, b.y - b.size/2, b.size, b.size);
         } else {
             bctx.beginPath(); bctx.arc(b.x, b.y, b.size/2, 0, Math.PI*2); bctx.fill();
         }
-        // Hit check
-        if (Math.hypot(b.x - soul.x, b.y - soul.y) < (b.size/2 + soul.size/2 - 2)) {
-            battleHP -= dodgeDamage;
-            displayPlayerHP = battleHP;
-            animateHP();
-            // Flash soul
-            soul._hitFlash = 8;
-            bullets.splice(bullets.indexOf(b), 1);
-            break;
+        
+        // FIX: Chỉ tính va chạm nếu KHÔNG trong thời gian chớp nháy bất tử (_hitFlash <= 0)
+        if (!hitThisFrame && soul._hitFlash <= 0 && Math.hypot(b.x - soul.x, b.y - soul.y) < (b.size/2 + soul.size/2 - 2)) {
+            hitThisFrame = true;
+            soul._hitFlash = 40; // Soul sẽ nhấp nháy 40 frame (khoảng ~0.6 giây) và không nhận sát thương
         }
+        return true;
+    });
+
+    if (hitThisFrame) {
+        battleHP = Math.max(0, battleHP - dodgeDamage);
+        animateHP();
     }
 
-    // Vẽ soul (trái tim đỏ Undertale)
+    // Vẽ soul (trái tim Undertale)
     bctx.save();
-    bctx.fillStyle = soul._hitFlash > 0 ? 'white' : '#ff0055';
+    // Giảm thời gian chớp nháy mỗi frame
     if (soul._hitFlash > 0) soul._hitFlash--;
+    
+    // Nếu đang chớp nháy, cứ mỗi 4 frame đổi màu trắng 1 lần tạo hiệu ứng nhấp nháy chuẩn
+    bctx.fillStyle = (soul._hitFlash > 0 && Math.floor(soul._hitFlash / 4) % 2 === 0) ? 'white' : '#ff0055';
+    
     bctx.translate(soul.x, soul.y);
     bctx.beginPath();
     bctx.moveTo(0, soul.size * 0.4);
@@ -627,38 +667,15 @@ function dodgeLoop() {
     bctx.fill();
     bctx.restore();
 
-    // Countdown
     dodgeTimer -= 1/60;
     if (dodgeTimer <= 0 || battleHP <= 0) {
         dodgeActive = false;
-        bctx.clearRect(0, 0, BATTLE_W, BATTLE_H);
+        battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         bullets = [];
         endDodgePhase();
     } else {
         requestAnimationFrame(dodgeLoop);
     }
-}
-
-async function endDodgePhase() {
-    animateHP();
-    if (battleHP <= 0) {
-        bossMusic.pause();
-        await typeDialog("* Linh hồn bạn đã tan vỡ... UIT giữ bạn lại mãi mãi.");
-        setTimeout(() => {
-            document.getElementById('battle-screen').style.display = 'none';
-            showStoryScreen('ending_bad');
-        }, 2500);
-        return;
-    }
-    // Sau khi dodge xong → hiện menu lại
-    const phaseDialogs = [
-        "* Tốt lắm... nhưng ta chưa xong đâu!",
-        "* Ngươi... mạnh hơn ta nghĩ. Ta sẽ nghiêm túc hơn!",
-        "* KHÔNG THỂ!! Ta là UIT, ta trường tồn mãi mãi!!"
-    ];
-    await typeDialog(phaseDialogs[bossPhaseIndex] || phaseDialogs[2]);
-    showBattleMenu(true);
-    setTimeout(() => { isPlayerTurn = true; }, 500);
 }
 
 function showBattleMenu(show) {
