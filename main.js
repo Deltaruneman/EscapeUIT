@@ -701,7 +701,11 @@ function endDodgePhase() {
 
     if (dialogueBox) {
         dialogueBox.style.display = 'block';
-        dialogueBox.innerText = '* Quái vật đang lườm bạn...';
+       const dialogText = document.getElementById('dialog-text');
+
+if(dialogText){
+    dialogText.innerText = '* Quái vật đang lườm bạn...';
+}
     }
 
     isPlayerTurn = true;
