@@ -165,61 +165,6 @@ function triggerJumpscare() {
     }, 1500);
 }
 
-function update() {
-    if (!gameRunning || isPaused) return;
-
-    let nx = player.x, ny = player.y;
-    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
-    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
-    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
-    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
-    if (canMoveTo(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
-    }
-    if (keysPressed['KeyP']) 
-   showStoryScreen("ending_good");
-    
-    if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
-    if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
-
-    if (player.x < -15) { currentRoomX--; player.x = 780; }
-    else if (player.x > 790) { currentRoomX++; player.x = 10; }
-    if (player.y < -15) { currentRoomY--; player.y = 580; }
-    else if (player.y > 590) { currentRoomY++; player.y = 10; }
-
-    const map = getMap(currentRoomX, currentRoomY);
-    let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
-    
-    // Nhặt chìa khóa
-    if (map[pr] && map[pr][pc] === 3) {
-        map[pr][pc] = 0;
-        keysFound++;
-        const countUI = document.getElementById('key-count');   
-        document.getElementById('key-count').innerText = keysFound;
-        if (countUI) countUI.innerText = keysFound;
-        showStoryScreen("key"); 
-    }
-if (map[pr] && map[pr][pc] === 5) {
-        map[pr][pc] = 0;
-        hiddenItemsFound++;
-
-        const countUI = document.getElementById('item-count');
-        if (countUI) countUI.innerText = hiddenItemsFound;
-        showStoryScreen("hidden_item"); 
-    }
-    enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        
-        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
-            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
-                triggerJumpscare();
-            }
-        }
-    });
-}
-
-
 function resumeGame() {
     
     if(keysPressed['ESCAPE']) {
@@ -265,6 +210,7 @@ function gameLoop() {
 }
 
 function updatePlayer() {
+    let nx = player.x, ny = player.y;
     if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
     if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
     if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
@@ -331,14 +277,8 @@ function renderGame() {
     draw();
 }
 
-function loop() { 
-    update(); 
-    draw(); 
-    requestAnimationFrame(loop); 
-}
-
-// Chạy vòng lặp
-loop();
+// Chạy vòng lặp duy nhất
+gameLoop();
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -407,6 +347,7 @@ let dodgeDuration = 0;
 let dodgeDamage = 0;
 let dodgeKeys = {};
 let dodgeActive = false;
+let dodgeLoopId = null;
 let bossShakeUntil = 0;
 let bossPhaseIndex = 0; // 0=normal, 1=angry (HP<100), 2=desperate (HP<50)
 
@@ -698,7 +639,7 @@ function dodgeLoop() {
         if (battleCtx) battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         endDodgePhase();
     } else {
-        requestAnimationFrame(dodgeLoop);
+        dodgeLoopId = requestAnimationFrame(dodgeLoop);
     }
 }
 // ============================================================
@@ -743,6 +684,7 @@ function showBattleMenu(show) {
 
 async function startDodgePhase(damage, duration, patterns) {
     // Đảm bảo loop cũ đã dừng hoàn toàn
+    if (dodgeLoopId) { cancelAnimationFrame(dodgeLoopId); dodgeLoopId = null; }
     dodgeActive = false;
     battlePhase = 'menu';
     bullets = [];
@@ -785,7 +727,7 @@ async function startDodgePhase(damage, duration, patterns) {
     }
 
     // Chỉ 1 loop duy nhất
-    requestAnimationFrame(dodgeLoop);
+    dodgeLoopId = requestAnimationFrame(dodgeLoop);
 }
 
 window.startBossBattle = function() {
@@ -844,7 +786,7 @@ document.addEventListener('keyup', e => { dodgeKeys[e.code] = false; });
 let hopeisused = false;
 
 window.battleAction = async function(action) {
-    if (!isPlayerTurn) return;
+    if (!isPlayerTurn || battlePhase !== 'menu') return;
     isPlayerTurn = false;
     showBattleMenu(false);
 
