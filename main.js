@@ -430,39 +430,56 @@ document.addEventListener('keydown', (e) => {
 // Thay đổi 'dialog-box' thành ID của thẻ HTML hiển thị text trong game của bạn
 function typeDialog(text) {
     return new Promise((resolve) => {
-        // Lấy element hiển thị text (bạn nhớ sửa ID cho đúng với HTML của bạn nhé)
-        const dialogEl = document.getElementById('dialog-text'); 
-        if (!dialogEl) {
-            console.warn("Không tìm thấy thẻ hiển thị hội thoại!");
-            return resolve();
+
+        const dialogueBox = document.getElementById('dialogue-box');
+        const dialogEl = document.getElementById('dialog-text');
+
+        if (!dialogEl || !dialogueBox) {
+            console.warn("Không tìm thấy dialogue-box hoặc dialog-text");
+            resolve();
+            return;
         }
 
-        // Reset trạng thái
+        dialogueBox.style.display = 'block';
         dialogEl.innerHTML = '';
+
         isTyping = true;
         skipDialog = false;
+
         let i = 0;
 
+        function finishDialog() {
+
+            isTyping = false;
+
+            // Delay nhỏ cho tự nhiên
+            setTimeout(() => {
+
+                // ẨN BOX SAU KHI XONG
+                dialogueBox.style.display = 'none';
+
+                resolve();
+
+            }, 300);
+        }
+
         function typeNextChar() {
-            // NẾU NGƯỜI CHƠI BẤM SKIP
+
+            // Skip
             if (skipDialog) {
-                dialogEl.innerHTML = text; // Hiện full text ngay lập tức
-                isTyping = false;
-                
-                // Đợi một chút để người chơi kịp đọc (hoặc bấm lần nữa để qua luôn)
-                setTimeout(resolve, 800); 
+                dialogEl.innerHTML = text;
+                finishDialog();
                 return;
             }
 
-            // NẾU CHƯA SKIP, TIẾP TỤC GÕ TỪNG CHỮ
+            // Typing
             if (i < text.length) {
                 dialogEl.innerHTML += text.charAt(i);
                 i++;
-                setTimeout(typeNextChar, 30); // Tốc độ gõ (30ms/chữ)
-            } else {
-                // Đã gõ xong toàn bộ
-                isTyping = false;
-                setTimeout(resolve, 1000); // Tự động tắt sau 1s nếu không ai bấm gì
+                setTimeout(typeNextChar, 30);
+            }
+            else {
+                finishDialog();
             }
         }
 
@@ -681,32 +698,35 @@ function dodgeLoop() {
 // ============================================================
 // HÀM KẾT THÚC LƯỢT NÉ ĐẠN (CHUYỂN TURN)
 // ============================================================
-function endDodgePhase() {
+async function endDodgePhase() {
+
     battlePhase = 'menu';
 
-    if (battleHP <= 0) {
-        showStoryScreen('ending_bad');
-        return;
-    }
+    dodgeActive = false;
 
     bullets = [];
 
     if (battleCtx) {
-        battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
+        battleCtx.clearRect(0,0,BATTLE_W,BATTLE_H);
     }
 
+    // chết
+    if (battleHP <= 0) {
+
+        await typeDialog("* Cơ thể bạn gục xuống...");
+
+        document.getElementById('battle-screen').style.display = 'none';
+
+        showStoryScreen('ending_bad');
+
+        return;
+    }
+
+    // hiện dialogue ngắn
+    await typeDialog("* Quái vật đang lườm bạn...");
+
+    // QUAN TRỌNG
     showBattleMenu(true);
-
-    const dialogueBox = document.getElementById('dialogue-box');
-
-    if (dialogueBox) {
-        dialogueBox.style.display = 'block';
-       const dialogText = document.getElementById('dialog-text');
-
-if(dialogText){
-    dialogText.innerText = '* Quái vật đang lườm bạn...';
-}
-    }
 
     isPlayerTurn = true;
 }
