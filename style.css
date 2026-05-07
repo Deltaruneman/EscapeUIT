@@ -63,7 +63,13 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 }
 
 .battle-scene {
-    display: none;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float 3s ease-in-out infinite;
+    position: relative;
+    z-index: 5;
 }
 
 .battle-scene img {
