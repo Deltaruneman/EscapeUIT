@@ -613,7 +613,6 @@ function animateHP() {
 // ============================================================
 function dodgeLoop() {
     // Đảm bảo battle menu không bị che mờ sau khi dodgeLoop chạy
-    const battleMenu = document.getElementById('battle-menu');
  
     if (battlePhase !== 'dodge') return;
     if (!dodgeActive) return;
@@ -664,6 +663,7 @@ function dodgeLoop() {
             hitThisFrame = true;
             soul._hitFlash = 40; // Soul sẽ nhấp nháy 40 frame (khoảng ~0.6 giây) và không nhận sát thương
         }
+           showBattleMenu(true);
         return true;
     });
 
