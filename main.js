@@ -742,7 +742,8 @@ function showBattleMenu(show) {
 async function startDodgePhase(damage, duration, patterns) {
     battlePhase = 'dodge';
 
-    showBattleMenu(false);
+   
+    
 
     dodgeDamage = damage;
     dodgeTimer = duration;
@@ -836,7 +837,7 @@ let hopeisused = false;
 window.battleAction = async function(action) {
     if (!isPlayerTurn) return;
     isPlayerTurn = false;
-    showBattleMenu(false);
+
 
     if (action === 'FIGHT') {
         let dmg = Math.floor(Math.random() * 20) + 15 + (bossPhaseIndex === 2 ? 5 : 0);
