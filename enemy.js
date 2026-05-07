@@ -183,8 +183,13 @@ class BaseEnemy {
     draw(ctx, currentRoomX, currentRoomY) {
         if (this.roomX === currentRoomX && this.roomY === currentRoomY) {
             const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, this.x, this.y, this.size, this.size);
+            };
+            img.onerror = () => {
+                console.error(`Failed to load image: images/${this.color}.png`);
+            };
             img.src = `images/${this.color}.png`; // Đường dẫn tới file ảnh dựa trên màu sắc
-            ctx.drawImage(img, this.x, this.y, this.size, this.size);
         }
     }
     
