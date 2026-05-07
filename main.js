@@ -669,7 +669,7 @@ function dodgeLoop() {
     });
 
     if (hitThisFrame) {
-        battleHP = Math.max(0, battleHP - dodgeDamage);
+        battleHP = Math.max(0, battleHP - 10*dodgeDamage);
         animateHP();
     }
 
