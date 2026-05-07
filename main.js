@@ -595,6 +595,7 @@ function animateHP() {
 // 2. SỬA HÀM DODGELOOP (Thêm khung hình bất tử - I-frames)
 // ============================================================
 function dodgeLoop() {
+       if (battlePhase !== 'dodge') return;
     if (!dodgeActive) return;
     const bctx = getBattleCanvas();
     bctx.clearRect(0, 0, BATTLE_W, BATTLE_H);
@@ -681,35 +682,29 @@ function dodgeLoop() {
 // HÀM KẾT THÚC LƯỢT NÉ ĐẠN (CHUYỂN TURN)
 // ============================================================
 function endDodgePhase() {
+    battlePhase = 'menu';
+
     if (battleHP <= 0) {
-            showStoryScreen('ending_bad');
-        
+        showStoryScreen('ending_bad');
         return;
     }
 
-    console.log("Sống sót qua đợt đạn, quay lại Menu!");
-    
-    // 1. Tìm và bật khung Menu chứa 4 nút (Fight, Act, Item, Mercy)
-    // THAY 'battle-menu-container' BẰNG ĐÚNG ID TRONG HTML CỦA BẠN
-    const battleMenu = document.getElementById('battle-menu-container'); 
-    if (battleMenu) {
-        battleMenu.style.display = 'block'; // Hoặc 'flex' tùy CSS của bạn
-    } else {
-        console.error("LỖI: Không tìm thấy thẻ ID là 'battle-menu-container'");
+    bullets = [];
+
+    if (battleCtx) {
+        battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
     }
 
-    // 2. Tìm và bật khung Text/Hội thoại (nếu có)
-    // THAY 'dialogue-box' BẰNG ĐÚNG ID TRONG HTML CỦA BẠN
+    showBattleMenu(true);
+
     const dialogueBox = document.getElementById('dialogue-box');
+
     if (dialogueBox) {
         dialogueBox.style.display = 'block';
-        dialogueBox.innerText = "* Quái vật đang lườm bạn..."; // Reset lại text
-    } else {
-        console.error("LỖI: Không tìm thấy thẻ ID là 'dialogue-box'");
+        dialogueBox.innerText = '* Quái vật đang lườm bạn...';
     }
 
-    // 3. Reset lượt chơi về lại cho Player (tùy thuộc vào biến của bạn)
-    // currentTurn = 'player';
+    isPlayerTurn = true;
 }
 
 function showBattleMenu(show) {
@@ -717,19 +712,28 @@ function showBattleMenu(show) {
 }
 
 async function startDodgePhase(damage, duration, patterns) {
+    battlePhase = 'dodge';
+
     showBattleMenu(false);
+
     dodgeDamage = damage;
     dodgeTimer = duration;
     dodgeDuration = duration * 1000;
     dodgeActive = true;
-    soul.x = DODGE_BOX.x + DODGE_BOX.w/2;
-    soul.y = DODGE_BOX.y + DODGE_BOX.h/2;
+
+    soul.x = DODGE_BOX.x + DODGE_BOX.w / 2;
+    soul.y = DODGE_BOX.y + DODGE_BOX.h / 2;
     soul._hitFlash = 0;
+
     bullets = [];
 
-    // Spawn patterns theo thứ tự
+    // Spawn pattern
     for (let i = 0; i < patterns.length; i++) {
-        setTimeout(() => { if(dodgeActive) spawnBullets(patterns[i]); }, i * (duration * 1000 / patterns.length));
+        setTimeout(() => {
+            if (dodgeActive) {
+                spawnBullets(patterns[i]);
+            }
+        }, i * (duration * 1000 / patterns.length));
     }
 
     const phaseIntros = [
@@ -737,9 +741,13 @@ async function startDodgePhase(damage, duration, patterns) {
         `* Ngươi nghĩ ngươi đã cứng đủ? Thử cái này!`,
         `* ĐỦ RỒI! TA SẼ NGHIỀN NÁT NGƯƠI!`
     ];
+
     await typeDialog(phaseIntros[bossPhaseIndex] || phaseIntros[2]);
+
     getBattleCanvas();
-    dodgeLoop();
+
+    // CHỈ CÓ 1 LOOP DUY NHẤT
+    requestAnimationFrame(dodgeLoop);
 }
 
 window.startBossBattle = function() {
@@ -898,32 +906,5 @@ function startBossFight(bossId) {
     returnToMenu();
 }
 
-function bossFightLoop() {
-    if (battlePhase === 'dodge') {
-        // Cập nhật trạng thái né đạn
-        updateDodgePhase();
-        renderDodgePhase();
-    } else if (battlePhase === 'menu') {
-        // Hiển thị menu chiến đấu
-        renderBattleMenu();
-    } else if (battlePhase === 'result') {
-        // Hiển thị kết quả sau lượt
-        renderBattleResult();
-    }
 
-    // Tiếp tục vòng lặp boss fight
-    if (battlePhase !== 'end') {
-        requestAnimationFrame(bossFightLoop);
-    }
-}
 
-function startBossFight() {
-    battlePhase = 'menu';
-    battleHP = 100;
-    bossHP = 200;
-    dodgeActive = false;
-    console.log("Bắt đầu trận chiến với boss!");
-
-    // Bắt đầu vòng lặp boss fight
-    requestAnimationFrame(bossFightLoop);
-}
