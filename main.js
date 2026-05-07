@@ -614,10 +614,7 @@ function animateHP() {
 function dodgeLoop() {
     // Đảm bảo battle menu không bị che mờ sau khi dodgeLoop chạy
     const battleMenu = document.getElementById('battle-menu');
-    if (battleMenu) {
-
-        battleMenu.style.opacity = '1'; // Loại bỏ hiệu ứng che mờ
-    }
+ 
     if (battlePhase !== 'dodge') return;
     if (!dodgeActive) return;
     const bctx = getBattleCanvas();
@@ -696,6 +693,7 @@ function dodgeLoop() {
         dodgeActive = false;
         battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         bullets = [];
+          showBattleMenu(true);
         endDodgePhase();
     } else {
         requestAnimationFrame(dodgeLoop);
@@ -727,12 +725,12 @@ async function endDodgePhase() {
 
         return;
     }
-
+  showBattleMenu(true);
     // hiện dialogue ngắn
     await typeDialog("* Quái vật đang lườm bạn...");
 
     // QUAN TRỌNG
-    showBattleMenu(true);
+  
 
     isPlayerTurn = true;
 }
