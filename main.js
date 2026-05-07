@@ -867,6 +867,14 @@ window.battleAction = async function(action) {
 // Quản lý trạng thái boss
 const defeatedBosses = new Set();
 
+function returnToMenu() {
+    console.log("Quay lại menu chính.");
+    isPaused = true;
+    gameRunning = false;
+    document.getElementById('gameCanvas').style.display = 'none';
+    document.getElementById('menu-screen').style.display = 'flex';
+}
+
 function startBossFight(bossId) {
     if (defeatedBosses.has(bossId)) {
         console.log(`Boss ${bossId} đã bị đánh bại, không thể chiến đấu lại.`);
@@ -885,4 +893,7 @@ function startBossFight(bossId) {
     console.log(`Boss ${bossId} đã bị đánh bại.`);
     isPaused = false;
     bossMusic.pause();
+
+    // Quay lại menu chính sau khi đánh bại boss
+    returnToMenu();
 }
