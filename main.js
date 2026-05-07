@@ -494,7 +494,7 @@ function typeDialog(text) {
 
 // Tạo bullet patterns khác nhau
 function spawnBullets(pattern) {
-    bullets = [];
+    // Không reset bullets ở đây để nhiều pattern có thể cộng dồn
     if (pattern === 'rain') {
         for (let i = 0; i < 8 + bossPhaseIndex * 3; i++) {
             bullets.push({
@@ -688,8 +688,9 @@ function dodgeLoop() {
     dodgeTimer -= 1/60;
     if (dodgeTimer <= 0 || battleHP <= 0) {
         dodgeActive = false;
-        battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
+        battlePhase = 'menu';
         bullets = [];
+        if (battleCtx) battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         endDodgePhase();
     } else {
         requestAnimationFrame(dodgeLoop);
@@ -736,10 +737,27 @@ function showBattleMenu(show) {
 }
 
 async function startDodgePhase(damage, duration, patterns) {
-    battlePhase = 'dodge';
+    // Đảm bảo loop cũ đã dừng hoàn toàn
+    dodgeActive = false;
+    battlePhase = 'menu';
+    bullets = [];
 
     showBattleMenu(false);
 
+    const phaseIntros = [
+        `* Ta sẽ dạy ngươi ý nghĩa của "Trượt Môn"!`,
+        `* Ngươi nghĩ ngươi đã cứng đủ? Thử cái này!`,
+        `* ĐỦ RỒI! TA SẼ NGHIỀN NÁT NGƯƠI!`
+    ];
+
+    // Hiện dialog TRƯỚC, đợi xong rồi mới bắt đầu dodge
+    await typeDialog(phaseIntros[bossPhaseIndex] || phaseIntros[2]);
+
+    // Chờ thêm 1 frame để đảm bảo loop cũ không còn chạy
+    await new Promise(r => requestAnimationFrame(r));
+
+    // Bây giờ mới set state và bắt đầu
+    battlePhase = 'dodge';
     dodgeDamage = damage;
     dodgeTimer = duration;
     dodgeDuration = duration * 1000;
@@ -748,10 +766,11 @@ async function startDodgePhase(damage, duration, patterns) {
     soul.x = DODGE_BOX.x + DODGE_BOX.w / 2;
     soul.y = DODGE_BOX.y + DODGE_BOX.h / 2;
     soul._hitFlash = 0;
-
     bullets = [];
 
-    // Spawn pattern
+    getBattleCanvas();
+
+    // Spawn pattern sau khi đã set dodgeActive = true
     for (let i = 0; i < patterns.length; i++) {
         setTimeout(() => {
             if (dodgeActive) {
@@ -760,17 +779,7 @@ async function startDodgePhase(damage, duration, patterns) {
         }, i * (duration * 1000 / patterns.length));
     }
 
-    const phaseIntros = [
-        `* Ta sẽ dạy ngươi ý nghĩa của "Trượt Môn"!`,
-        `* Ngươi nghĩ ngươi đã cứng đủ? Thử cái này!`,
-        `* ĐỦ RỒI! TA SẼ NGHIỀN NÁT NGƯƠI!`
-    ];
-
-    await typeDialog(phaseIntros[bossPhaseIndex] || phaseIntros[2]);
-
-    getBattleCanvas();
-
-    // CHỈ CÓ 1 LOOP DUY NHẤT
+    // Chỉ 1 loop duy nhất
     requestAnimationFrame(dodgeLoop);
 }
 
@@ -929,6 +938,3 @@ function startBossFight(bossId) {
     // Quay lại menu chính sau khi đánh bại boss
     returnToMenu();
 }
-
-
-
