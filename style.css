@@ -58,98 +58,110 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 }
 
 .battle-scene {
-    flex-grow: 1;
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     animation: float 3s ease-in-out infinite;
+    min-height: 0;
 }
 
 .battle-scene img {
-    height: 250px;
+    height: 200px;
+    image-rendering: pixelated;
     filter: drop-shadow(0 0 10px red);
 }
 
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-15px); }
     100% { transform: translateY(0px); }
 }
 
 .battle-ui-container {
-    width: 80%;
-    max-width: 800px;
-    margin: 0 auto;
-    border: 4px solid white;
+    width: 90%;
+    max-width: 820px;
+    margin: 0 auto 10px;
+    border: 3px solid white;
     background: #000;
-    padding: 15px;
+    padding: 14px 18px;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .battle-dialog {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: white;
-    min-height: 80px;
-    margin-bottom: 15px;
+    min-height: 72px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
 }
 
 .battle-stats {
     display: flex;
     justify-content: space-between;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 2px solid white;
+    margin-bottom: 14px;
     padding-bottom: 10px;
+    border-bottom: 2px solid white;
+    color: white;
 }
 
 .battle-menu {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 12px;
 }
 
 .battle-menu button {
     background: black;
     color: white;
-    border: 2px solid white;
-    padding: 10px 20px;
-    font-size: 1.2rem;
+    border: 3px solid white;
+    padding: 10px 22px;
+    font-size: 1.25rem;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     cursor: pointer;
-    flex: 1;
-    margin: 0 5px;
-    transition: 0.2s;
+    letter-spacing: 0.05em;
+    transition: background 0.08s, color 0.08s;
+    /* KHÔNG opacity, KHÔNG filter — nút luôn rõ */
+    opacity: 1 !important;
+    filter: none !important;
 }
 
-.battle-menu button:hover {
+.battle-menu button:hover,
+.battle-menu button:focus {
     background: white;
     color: black;
+    outline: none;
+}
+
+/* dialogue box trong dodge phase */
+#dialogue-box {
+    display: none; /* ẩn mặc định, chỉ hiện khi typeDialog gọi */
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    min-height: 150px;
+    background: black;
+    border: 4px solid white;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    padding: 16px;
+    z-index: 20;
+    box-sizing: border-box;
+}
+
+#dialog-text {
+    white-space: pre-wrap;
 }
 
 /* Hiện joystick khi là thiết bị cảm ứng */
 @media (pointer: coarse) {
     #joystick-container { display: block; }
-}
-#dialogue-box{
-    position:absolute;
-    bottom:40px;
-    left:50%;
-    transform:translateX(-50%);
-    width:700px;
-    min-height:150px;
-
-    background:black;
-    border:4px solid white;
-
-    color:white;
-    font-family:Courier New;
-    font-size:24px;
-
-    padding:16px;
-    z-index:20;
-}
-
-#dialog-text{
-    white-space:pre-wrap;
 }
