@@ -466,24 +466,16 @@ function typeDialog(text) {
             }
         }
 
-        requestAnimationFrame(typeNextChar);
+        typeNextChar();
     });
 }
 
-// Đảm bảo game loop không bị chặn
-function gameLoop() {
-    if (!isPaused && gameRunning) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updatePlayer();
-        updateEnemies();
-        renderGame();
-    }
-    requestAnimationFrame(gameLoop);
-}
 
-// Khởi động lại vòng lặp game
-loop();
 
+
+
+
+// Tạo bullet patterns khác nhau
 function spawnBullets(pattern) {
     bullets = [];
     if (pattern === 'rain') {
@@ -789,10 +781,10 @@ window.startBossBattle = function() {
     }
 
     showBattleMenu(false);
-    typeDialogOptimized("* ...Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?").then(() => {
+    typeDialog("* ...Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?").then(() => {
         return new Promise(r => setTimeout(r, 800));
     }).then(() => {
-        return typeDialogOptimized("* TA là UIT. Ta trường tồn. Và ngươi... sẽ ở lại đây MÃI MÃI.");
+        return typeDialog("* TA là UIT. Ta trường tồn. Và ngươi... sẽ ở lại đây MÃI MÃI.");
     }).then(() => {
         showBattleMenu(true);
         isPlayerTurn = true;
