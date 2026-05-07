@@ -145,7 +145,25 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 @media (pointer: coarse) {
     #joystick-container { display: block; }
 }
+#dialogue-box{
+    position:absolute;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+    width:700px;
+    min-height:150px;
 
+    background:black;
+    border:4px solid white;
+
+    color:white;
+    font-family:Courier New;
+    font-size:24px;
+
+    padding:16px;
+    /* FIX: Phải cao hơn battleCanvas (z-index:1 trong JS) */
+    z-index:15;
+}
 
 #dialog-text{
     white-space:pre-wrap;
