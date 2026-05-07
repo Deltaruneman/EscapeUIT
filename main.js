@@ -554,7 +554,8 @@ function getBattleCanvas() {
         battleCanvas = document.createElement('canvas');
         battleCanvas.width = BATTLE_W;
         battleCanvas.height = BATTLE_H;
-        battleCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;';
+        // Sửa z-index từ 10 xuống thấp hơn các nút UI
+        battleCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;';
         document.getElementById('battle-screen').appendChild(battleCanvas);
         battleCtx = battleCanvas.getContext('2d');
     }
