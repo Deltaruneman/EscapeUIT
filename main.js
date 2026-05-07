@@ -5,6 +5,7 @@ canvas.height = 600;
 
 let gameRunning = false;
 let isPaused = false;
+let isBattling = false;
 let keysFound = 0;
 let deathCount = 0;
 let currentRoomX = 0;
@@ -198,10 +199,8 @@ function draw() {
 
 
 function gameLoop() {
-    if (!isPaused && gameRunning) {
+    if (!isPaused && gameRunning && !isBattling) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-
         updatePlayer();
         updateEnemies();
         renderGame();
@@ -659,13 +658,11 @@ async function endDodgePhase() {
 
     // chết
     if (battleHP <= 0) {
-
         await typeDialog("* Cơ thể bạn gục xuống...");
-
+        isBattling = false;
+        canvas.style.display = 'block';
         document.getElementById('battle-screen').style.display = 'none';
-
         showStoryScreen('ending_bad');
-
         return;
     }
 
@@ -738,6 +735,10 @@ window.startBossBattle = function() {
     document.getElementById('story-screen').style.display = 'none';
     isPaused = true;
     gameRunning = false;
+    isBattling = true;
+
+    // Ẩn canvas game để không bị render đè lên battle screen
+    canvas.style.display = 'none';
 
     battleHP = 100;
     bossHP = 200;
@@ -828,6 +829,7 @@ window.battleAction = async function(action) {
 
     if (bossHP <= 0) {
         bossMusic.pause();
+        isBattling = false;
         if (battleCanvas) battleCanvas.remove(), battleCanvas = null;
         await typeDialog("* N... Không thể... Sao một sinh viên lại có thể...");
         await new Promise(r => setTimeout(r, 1000));
