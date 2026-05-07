@@ -69,7 +69,8 @@ function showStoryScreen(type) {
     }
 
 
-    img.src = data.img;
+    img.src = data.img || '';
+    img.style.display = data.img ? 'block' : 'none';
     text.innerText = data.text;
     screen.style.display = 'flex';
 }
@@ -430,9 +431,13 @@ document.addEventListener('keydown', (e) => {
 // Thay đổi 'dialog-box' thành ID của thẻ HTML hiển thị text trong game của bạn
 function typeDialog(text) {
     return new Promise((resolve) => {
-
-        const dialogueBox = document.getElementById('dialogue-box');
-        const dialogEl = document.getElementById('dialog-text');
+        const battleScreen = document.getElementById('battle-screen');
+        const dialogueBox = battleScreen
+            ? battleScreen.querySelector('#dialogue-box')
+            : document.getElementById('dialogue-box');
+        const dialogEl = dialogueBox
+            ? dialogueBox.querySelector('#dialog-text')
+            : document.getElementById('dialog-text');
 
         if (!dialogEl || !dialogueBox) {
             console.warn("Không tìm thấy dialogue-box hoặc dialog-text");
