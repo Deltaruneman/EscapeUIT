@@ -55,6 +55,11 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     justify-content: space-between;
     padding: 20px;
     box-sizing: border-box;
+    /* FIX: Cần position để tạo stacking context cho z-index hoạt động đúng */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 100;
 }
 
 .battle-scene {
@@ -63,6 +68,9 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     justify-content: center;
     align-items: center;
     animation: float 3s ease-in-out infinite;
+    /* FIX: Hiện trên canvas (z-index: 1 trong JS) */
+    position: relative;
+    z-index: 5;
 }
 
 .battle-scene img {
@@ -84,6 +92,9 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     background: #000;
     padding: 15px;
     box-sizing: border-box;
+    /* FIX: Hiện trên canvas */
+    position: relative;
+    z-index: 5;
 }
 
 .battle-dialog {
@@ -106,6 +117,9 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 .battle-menu {
     display: flex;
     justify-content: space-between;
+    /* FIX: Đảm bảo nút luôn hiện trên canvas */
+    position: relative;
+    z-index: 5;
 }
 
 .battle-menu button {
@@ -147,7 +161,8 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     font-size:24px;
 
     padding:16px;
-    z-index:20;
+    /* FIX: Phải cao hơn battleCanvas (z-index:1 trong JS) */
+    z-index:15;
 }
 
 #dialog-text{
