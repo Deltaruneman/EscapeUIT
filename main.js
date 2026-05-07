@@ -851,7 +851,6 @@ window.battleAction = async function(action) {
         return;
     }
 
-    // Boss turn — chọn pattern theo phase
     const patterns = {
         0: [['rain'], ['aimed'], ['rain', 'aimed']],
         1: [['spiral'], ['wall'], ['aimed', 'wall']],
