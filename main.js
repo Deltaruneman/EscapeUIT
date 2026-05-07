@@ -897,3 +897,33 @@ function startBossFight(bossId) {
     // Quay lại menu chính sau khi đánh bại boss
     returnToMenu();
 }
+
+function bossFightLoop() {
+    if (battlePhase === 'dodge') {
+        // Cập nhật trạng thái né đạn
+        updateDodgePhase();
+        renderDodgePhase();
+    } else if (battlePhase === 'menu') {
+        // Hiển thị menu chiến đấu
+        renderBattleMenu();
+    } else if (battlePhase === 'result') {
+        // Hiển thị kết quả sau lượt
+        renderBattleResult();
+    }
+
+    // Tiếp tục vòng lặp boss fight
+    if (battlePhase !== 'end') {
+        requestAnimationFrame(bossFightLoop);
+    }
+}
+
+function startBossFight() {
+    battlePhase = 'menu';
+    battleHP = 100;
+    bossHP = 200;
+    dodgeActive = false;
+    console.log("Bắt đầu trận chiến với boss!");
+
+    // Bắt đầu vòng lặp boss fight
+    requestAnimationFrame(bossFightLoop);
+}
