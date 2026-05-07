@@ -209,7 +209,7 @@ class BaseEnemy {
 // 🔴 Loại Đỏ: Bám đuôi BFS + smooth acceleration + dự đoán vị trí player
 class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "boss");
+        super(startX, startY, baseSpeed, "Boss");
         // Momentum / smooth movement
         this.vx = 0;
         this.vy = 0;
