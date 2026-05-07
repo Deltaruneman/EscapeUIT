@@ -863,3 +863,26 @@ window.battleAction = async function(action) {
 
     await startDodgePhase(bossPhaseIndex === 2 ? 8 : (bossPhaseIndex === 1 ? 5 : 3), dodgeDur, chosenPattern);
 };
+
+// Quản lý trạng thái boss
+const defeatedBosses = new Set();
+
+function startBossFight(bossId) {
+    if (defeatedBosses.has(bossId)) {
+        console.log(`Boss ${bossId} đã bị đánh bại, không thể chiến đấu lại.`);
+        return;
+    }
+
+    console.log(`Bắt đầu chiến đấu với Boss ${bossId}`);
+    bossMusic.play();
+    isPaused = true;
+
+    // Logic chiến đấu với boss
+    // ...
+
+    // Khi boss bị đánh bại
+    defeatedBosses.add(bossId);
+    console.log(`Boss ${bossId} đã bị đánh bại.`);
+    isPaused = false;
+    bossMusic.pause();
+}
