@@ -763,7 +763,6 @@ async function startDodgePhase(damage, duration, patterns) {
 window.startBossBattle = function() {
     bgMusic.pause();
     bgMusic.currentTime = 0;
-    bossMusic.play();
 
     document.getElementById('story-screen').style.display = 'none';
     isPaused = true;
@@ -797,15 +796,62 @@ window.startBossBattle = function() {
             </div>`;
     }
 
+    // Ẩn menu và boss tĩnh trong lúc chạy intro
     showBattleMenu(false);
-    typeDialog("* ...Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?").then(() => {
-        return new Promise(r => setTimeout(r, 800));
-    }).then(() => {
-        return typeDialog("* TA là UIT. Ta trường tồn. Và ngươi... sẽ ở lại đây MÃI MÃI.");
-    }).then(() => {
-        showBattleMenu(true);
-        isPlayerTurn = true;
-    });
+    const bossImg = document.querySelector('.battle-scene img');
+    if (bossImg) bossImg.style.opacity = '0';
+
+    // --- BOSS INTRO SEQUENCE ---
+    const introOverlay = document.getElementById('boss-intro-overlay');
+    const introGif     = document.getElementById('boss-intro-gif');
+    const introFlash   = document.getElementById('boss-intro-flash');
+
+    // Reset và reload GIF để animation chạy lại từ đầu
+    introGif.src = '';
+    introGif.src = 'boss_intro.gif';
+
+    // Bật nhạc boss ngay lúc intro
+    bossMusic.play();
+
+    // Hiện intro overlay
+    introOverlay.classList.add('active');
+
+    // Flash trắng ngay khi boss xuất hiện (0.1s sau để zoom kịp bắt đầu)
+    setTimeout(() => {
+        introFlash.classList.add('flash');
+        // Rung màn hình
+        battleScreen.style.animation = 'bossShakeIntro 0.5s ease-out';
+        setTimeout(() => { battleScreen.style.animation = ''; }, 500);
+    }, 100);
+
+    // Sau 2.5s: ẩn intro, hiện boss thật, bắt đầu dialogue
+    setTimeout(() => {
+        // Fade out intro overlay
+        introOverlay.style.transition = 'opacity 0.5s ease';
+        introOverlay.style.opacity = '0';
+
+        setTimeout(() => {
+            introOverlay.classList.remove('active');
+            introOverlay.style.opacity = '';
+            introFlash.classList.remove('flash');
+
+            // Hiện boss tĩnh
+            if (bossImg) {
+                bossImg.style.transition = 'opacity 0.4s ease';
+                bossImg.style.opacity = '1';
+            }
+
+            // Bắt đầu dialogue
+            typeDialog("* ...Mày nghĩ lấy đủ 4 chìa khóa là thoát được sao?").then(() => {
+                return new Promise(r => setTimeout(r, 800));
+            }).then(() => {
+                return typeDialog("* TA là UIT. Ta trường tồn. Và ngươi... sẽ ở lại đây MÃI MÃI.");
+            }).then(() => {
+                showBattleMenu(true);
+                isPlayerTurn = true;
+            });
+        }, 500);
+    }, 2500);
 };
 
 // Keyboard cho dodge
@@ -914,6 +960,3 @@ function startBossFight(bossId) {
     // Quay lại menu chính sau khi đánh bại boss
     returnToMenu();
 }
-
-
-

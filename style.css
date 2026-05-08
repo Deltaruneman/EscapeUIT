@@ -163,3 +163,67 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 #dialog-text{
     white-space:pre-wrap;
 }
+
+/* ===== BOSS INTRO OVERLAY ===== */
+#boss-intro-overlay {
+    position: absolute;
+    /* Khớp đúng vị trí battle-scene (flex-grow:1, phía trên UI container) */
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Chiều cao = toàn màn hình trừ phần UI dưới (~220px) */
+    height: calc(100% - 220px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+#boss-intro-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#boss-intro-gif {
+    /* Cùng kích thước với boss-img trong .battle-scene */
+    height: 250px;
+    filter: drop-shadow(0 0 30px red) drop-shadow(0 0 60px darkred);
+    animation: bossIntroZoom 0.6s ease-out forwards;
+}
+
+@keyframes bossIntroZoom {
+    0%   { transform: scale(0.2) translateY(80px); opacity: 0; filter: drop-shadow(0 0 0px red) brightness(5); }
+    60%  { transform: scale(1.15) translateY(-10px); opacity: 1; filter: drop-shadow(0 0 40px red) brightness(2); }
+    100% { transform: scale(1) translateY(0px); opacity: 1; filter: drop-shadow(0 0 30px red); }
+}
+
+/* Flash trắng khi boss xuất hiện */
+#boss-intro-flash {
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#boss-intro-flash.flash {
+    animation: bossFlash 0.5s ease-out forwards;
+}
+
+@keyframes bossFlash {
+    0%   { opacity: 0.9; }
+    100% { opacity: 0; }
+}
+
+/* Boss screen rung khi intro */
+@keyframes bossShakeIntro {
+    0%, 100% { transform: translateX(0); }
+    20%  { transform: translateX(-8px); }
+    40%  { transform: translateX(8px); }
+    60%  { transform: translateX(-5px); }
+    80%  { transform: translateX(5px); }
+}
