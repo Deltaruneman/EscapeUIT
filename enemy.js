@@ -36,6 +36,10 @@ class BaseEnemy {
         this.color = color;
         this.wanderTargetX = null;
         this.wanderTargetY = null;
+         this.img = new Image();
+        this.imgLoaded = false;
+        this.img.onload = () => { this.imgLoaded = true; };
+        this.img.src = `images/${this.color}.png`;
     }
 
     // AI Tìm đường dùng BFS
@@ -111,6 +115,7 @@ class BaseEnemy {
                 bestExit = exit;
             }
         }
+        
         return bestExit;
     }
 
@@ -333,10 +338,9 @@ class RedEnemy extends BaseEnemy {
     }
 }
 
-// 🟢 Loại Xanh: Chỉ di chuyển ngẫu nhiên
 class GreenEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "Grass");
+        super(startX, startY, baseSpeed, "Grass.png");
     }
     update(player, currentRoomX, currentRoomY, keysFound) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.1); 
@@ -346,10 +350,9 @@ class GreenEnemy extends BaseEnemy {
     }
 }
 
-// 🌸 Loại Hồng: Bảo vệ Key/Item
 class PinkEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "WaterPurifier");
+        super(startX, startY, baseSpeed, "WaterPurifier.png");
     }
     update(player, currentRoomX, currentRoomY, keysFound) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.2);
