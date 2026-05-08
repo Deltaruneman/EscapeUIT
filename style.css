@@ -47,7 +47,6 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     left: 35px;
     transition: transform 0.1s ease-out;
 }
-/* --- DELTARUNE BATTLE UI --- */
 #battle-screen {
     background: black;
     display: none;
@@ -55,7 +54,6 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     justify-content: space-between;
     padding: 20px;
     box-sizing: border-box;
-    /* FIX: Cần position để tạo stacking context cho z-index hoạt động đúng */
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;

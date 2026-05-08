@@ -658,11 +658,9 @@ function dodgeLoop() {
         } else {
             bctx.beginPath(); bctx.arc(b.x, b.y, b.size/2, 0, Math.PI*2); bctx.fill();
         }
-        
-        // FIX: Chỉ tính va chạm nếu KHÔNG trong thời gian chớp nháy bất tử (_hitFlash <= 0)
         if (!hitThisFrame && soul._hitFlash <= 0 && Math.hypot(b.x - soul.x, b.y - soul.y) < (b.size/2 + soul.size/2 - 2)) {
             hitThisFrame = true;
-            soul._hitFlash = 40; // Soul sẽ nhấp nháy 40 frame (khoảng ~0.6 giây) và không nhận sát thương
+            soul._hitFlash = 40; 
         }
            showBattleMenu(true);
         return true;
@@ -672,15 +670,9 @@ function dodgeLoop() {
         battleHP = Math.max(0, battleHP - 5*dodgeDamage);
         animateHP();
     }
-
-    // Vẽ soul (trái tim Undertale)
     bctx.save();
-    // Giảm thời gian chớp nháy mỗi frame
     if (soul._hitFlash > 0) soul._hitFlash--;
-    
-    // Nếu đang chớp nháy, cứ mỗi 4 frame đổi màu trắng 1 lần tạo hiệu ứng nhấp nháy chuẩn
-    bctx.fillStyle = (soul._hitFlash > 0 && Math.floor(soul._hitFlash / 4) % 2 === 0) ? 'white' : '#ff0055';
-    
+    bctx.fillStyle = (soul._hitFlash > 0 && Math.floor(soul._hitFlash / 4) % 2 === 0) ? 'white' : '#ff0055'; 
     bctx.translate(soul.x, soul.y);
     bctx.beginPath();
     bctx.moveTo(0, soul.size * 0.4);
@@ -700,9 +692,6 @@ function dodgeLoop() {
         requestAnimationFrame(dodgeLoop);
     }
 }
-// ============================================================
-// HÀM KẾT THÚC LƯỢT NÉ ĐẠN (CHUYỂN TURN)
-// ============================================================
 async function endDodgePhase() {
 
     battlePhase = 'menu';
@@ -714,8 +703,6 @@ async function endDodgePhase() {
     if (battleCtx) {
         battleCtx.clearRect(0,0,BATTLE_W,BATTLE_H);
     }
-
-    // chết
     if (battleHP <= 0) {
 
         await typeDialog("* Cơ thể bạn gục xuống...");
@@ -727,12 +714,7 @@ async function endDodgePhase() {
         return;
     }
   showBattleMenu(true);
-    // hiện dialogue ngắn
     await typeDialog("* Quái vật đang lườm bạn...");
-
-    // QUAN TRỌNG
-  
-
     isPlayerTurn = true;
 }
 
@@ -775,8 +757,6 @@ async function startDodgePhase(damage, duration, patterns) {
     await typeDialog(phaseIntros[bossPhaseIndex] || phaseIntros[2]);
 
     getBattleCanvas();
-
-    // CHỈ CÓ 1 LOOP DUY NHẤT
     requestAnimationFrame(dodgeLoop);
 }
 
@@ -800,7 +780,6 @@ window.startBossBattle = function() {
     const battleScreen = document.getElementById('battle-screen');
     battleScreen.style.setProperty("display", "flex", "important");
 
-    // Build HP bars nếu chưa có
     if (!document.getElementById('boss-hp-bar-fill')) {
         const stats = document.querySelector('.battle-stats');
         stats.innerHTML = `
