@@ -327,7 +327,7 @@ class RedEnemy extends BaseEnemy {
             ctx.shadowColor = 'red';
             ctx.shadowBlur = 18 + Math.sin(Date.now() / 80) * 8;
         }
-        ctx.fillStyle = this.isRaging ? '#ff2200' : 'images/red.png';
+        ctx.fillStyle =  'images/red.png';
         ctx.fillRect(this.x, this.y, this.size, this.size);
         if (this.isRaging) ctx.restore();
     }
