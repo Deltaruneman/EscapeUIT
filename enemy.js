@@ -25,7 +25,7 @@ function isInSafeZone(x, y, roomX, roomY) {
 
 
 class BaseEnemy {
-    constructor(startX, startY, baseSpeed, color) {
+    constructor(startX, startY, baseSpeed, image) {
         this.x = startX;
         this.y = startY;
         this.roomX = 0;
