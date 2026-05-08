@@ -808,7 +808,7 @@ window.startBossBattle = function() {
 
     // Reset và reload GIF để animation chạy lại từ đầu
     introGif.src = '';
-    introGif.src = 'boss_intro.gif';
+    introGif.src = 'Scenes/entrance.gif';
 
     // Bật nhạc boss ngay lúc intro
     bossMusic.play();
