@@ -1,6 +1,17 @@
 // Thêm roomX và roomY vào để xác định phòng chứa Safe Zone (ví dụ phòng bắt đầu 0, 0)
 const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 };
 
+// Cache ảnh enemy để không tạo Image() mới mỗi frame
+const enemyImageCache = {};
+function getEnemyImage(name) {
+    if (!enemyImageCache[name]) {
+        const img = new Image();
+        img.src = `images/${name}.png`;
+        enemyImageCache[name] = img;
+    }
+    return enemyImageCache[name];
+}
+
 // --- INVINCIBILITY FRAMES ---
 // Sau khi player chết, enemy sẽ không tấn công được trong 1 giây
 let invincibleUntil = 0;
@@ -182,14 +193,14 @@ class BaseEnemy {
 
     draw(ctx, currentRoomX, currentRoomY) {
         if (this.roomX === currentRoomX && this.roomY === currentRoomY) {
-            const img = new Image();
-            img.onload = () => {
+            const img = getEnemyImage(this.color);
+            if (img.complete && img.naturalWidth > 0) {
                 ctx.drawImage(img, this.x, this.y, this.size, this.size);
-            };
-            img.onerror = () => {
-                console.error(`Failed to load image: images/${this.color}.png`);
-            };
-            img.src = `images/${this.color}.png`; // Đường dẫn tới file ảnh dựa trên màu sắc
+            } else {
+                // Fallback: vẽ hình chữ nhật màu trong khi ảnh đang load
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
         }
     }
     
@@ -321,14 +332,19 @@ class RedEnemy extends BaseEnemy {
 
     draw(ctx, currentRoomX, currentRoomY) {
         if (this.roomX !== currentRoomX || this.roomY !== currentRoomY) return;
-        // Rage glow effect
+        const img = getEnemyImage(this.color);
         if (this.isRaging) {
             ctx.save();
             ctx.shadowColor = 'red';
             ctx.shadowBlur = 18 + Math.sin(Date.now() / 80) * 8;
         }
-        ctx.fillStyle =  'images/red.png';
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+        if (img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, this.x, this.y, this.size, this.size);
+        } else {
+            // Fallback trong khi ảnh load
+            ctx.fillStyle = this.isRaging ? '#ff2200' : 'red';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
         if (this.isRaging) ctx.restore();
     }
 }
@@ -336,7 +352,7 @@ class RedEnemy extends BaseEnemy {
 // 🟢 Loại Xanh: Chỉ di chuyển ngẫu nhiên
 class GreenEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "images/green.png");
+        super(startX, startY, baseSpeed, "green");
     }
     update(player, currentRoomX, currentRoomY, keysFound) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.1); 
@@ -349,7 +365,7 @@ class GreenEnemy extends BaseEnemy {
 // 🌸 Loại Hồng: Bảo vệ Key/Item
 class PinkEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "images/pink.png");
+        super(startX, startY, baseSpeed, "pink");
     }
     update(player, currentRoomX, currentRoomY, keysFound) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.2);
