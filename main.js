@@ -20,7 +20,7 @@ let hopeCount = 0
 const player = { x: 400, y: 300, size: 25, speed: 2.5 };
 
 const enemies = [
-    new RedEnemy(50, 50, 1.3),        // Đỏ: Theo dõi sát sao
+    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
     new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
 ];enemies[1].roomX = 1; enemies[1].roomY = 0; 
