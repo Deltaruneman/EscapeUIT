@@ -41,11 +41,11 @@ bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
 // ===== SFX =====
-const sfxPickupKey  = new Audio('sfx_key.wav');      // Nhặt chìa khóa
+const sfxPickupKey  = new Audio('sfx_key.mp3');      // Nhặt chìa khóa
 sfxPickupKey.volume  = 0.8;
-const sfxPickupItem = new Audio('sfx_item.wav');     // Nhặt vật phẩm ẩn
+const sfxPickupItem = new Audio('sfx_item.mp3');     // Nhặt vật phẩm ẩn
 sfxPickupItem.volume = 0.7;
-const sfxJumpscare  = new Audio('sfx_jumpscare.wav'); // Jumpscare
+const sfxJumpscare  = new Audio('sfx_jumpscare.mp3'); // Jumpscare
 sfxJumpscare.volume  = 1.0;
 
 // Footstep tổng hợp bằng Web Audio API (không cần file âm thanh)
