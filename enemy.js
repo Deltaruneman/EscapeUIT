@@ -1,8 +1,19 @@
 // Thêm roomX và roomY vào để xác định phòng chứa Safe Zone (ví dụ phòng bắt đầu 0, 0)
 const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 };
 
-// Cache ảnh enemy để không tạo Image() mới mỗi frame
+// Cache ảnh enemy — preload toàn bộ ngay khi script chạy
 const enemyImageCache = {};
+const ENEMY_IMAGE_NAMES = ['red', 'green', 'pink'];
+
+function preloadEnemyImages() {
+    ENEMY_IMAGE_NAMES.forEach(name => {
+        const img = new Image();
+        img.src = `images/${name}.png`;
+        enemyImageCache[name] = img;
+    });
+}
+preloadEnemyImages();
+
 function getEnemyImage(name) {
     if (!enemyImageCache[name]) {
         const img = new Image();

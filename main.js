@@ -7,7 +7,11 @@ canvas.height = 600;
 const wallImg = new Image();
 wallImg.src = 'images/wall.png';
 const safeZoneImg = new Image();
-safeZoneImg.src = 'images/safezone.png';
+safeZoneImg.src = 'images/safe_zone.png';
+const keyImg = new Image();
+keyImg.src = 'images/key.png';
+const hopeImg = new Image();
+hopeImg.src = 'images/hope.png';
 
 let gameRunning = false;
 let isPaused = false;
@@ -17,7 +21,7 @@ let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
 let hopeCount = 0
-const player = { x: 400, y: 300, size: 25, speed: 2.5 };
+const player = { x: 400, y: 300, size: 25, speed: 3.2 };
 
 const enemies = [
     new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
@@ -243,8 +247,20 @@ function draw() {
                     ctx.fillStyle="#121212"; ctx.fillRect(c*50, r*50, 50, 50);
                 }
             }
-            if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
-            if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
+            if(map[r][c]===3) {
+                if(keyImg.complete && keyImg.naturalWidth > 0) {
+                    ctx.drawImage(keyImg, c*50+5, r*50+5, 40, 40);
+                } else {
+                    ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill();
+                }
+            }
+            if(map[r][c]===5) {
+                if(hopeImg.complete && hopeImg.naturalWidth > 0) {
+                    ctx.drawImage(hopeImg, c*50+8, r*50+8, 34, 34);
+                } else {
+                    ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill();
+                }
+            }
             if(map[r][c]===4) {
                 if(safeZoneImg.complete && safeZoneImg.naturalWidth > 0) {
                     ctx.drawImage(safeZoneImg, c*50, r*50, 50, 50);
