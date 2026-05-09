@@ -3,6 +3,12 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800; 
 canvas.height = 600;
 
+// Preload tile images
+const wallImg = new Image();
+wallImg.src = 'images/wall.png';
+const safeZoneImg = new Image();
+safeZoneImg.src = 'images/safezone.png';
+
 let gameRunning = false;
 let isPaused = false;
 let keysFound = 0;
@@ -11,10 +17,10 @@ let currentRoomX = 0;
 let currentRoomY = 0;
 let hiddenItemsFound = 0;
 let hopeCount = 0
-const player = { x: 400, y: 300, size: 25, speed: 3.2 };
+const player = { x: 400, y: 300, size: 25, speed: 2.5 };
 
 const enemies = [
-    new RedEnemy(50, 50, 2),        // Đỏ: Theo dõi sát sao
+    new RedEnemy(50, 50, 1.3),        // Đỏ: Theo dõi sát sao
     new GreenEnemy(200, 200, 1.5),  // Xanh: Di chuyển ngẫu nhiên
     new PinkEnemy(600, 400, 1.8)    // Hồng: Bảo vệ
 ];enemies[1].roomX = 1; enemies[1].roomY = 0; 
@@ -230,10 +236,22 @@ function draw() {
     const map = getMap(currentRoomX, currentRoomY);
     for(let r=0; r<ROWS; r++){
         for(let c=0; c<COLS; c++){
-            if(map[r][c]===1) { ctx.fillStyle="#121212"; ctx.fillRect(c*50, r*50, 50, 50); }
+            if(map[r][c]===1) {
+                if(wallImg.complete && wallImg.naturalWidth > 0) {
+                    ctx.drawImage(wallImg, c*50, r*50, 50, 50);
+                } else {
+                    ctx.fillStyle="#121212"; ctx.fillRect(c*50, r*50, 50, 50);
+                }
+            }
             if(map[r][c]===3) { ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 10, 0, 7); ctx.fill(); }
             if(map[r][c]===5) { ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill(); }
-            if(map[r][c]===4) { ctx.fillStyle="green"; ctx.fillRect(c*50, r*50, 50, 50); };
+            if(map[r][c]===4) {
+                if(safeZoneImg.complete && safeZoneImg.naturalWidth > 0) {
+                    ctx.drawImage(safeZoneImg, c*50, r*50, 50, 50);
+                } else {
+                    ctx.fillStyle="green"; ctx.fillRect(c*50, r*50, 50, 50);
+                }
+            }
         }
     }
     
@@ -672,13 +690,10 @@ function dodgeLoop() {
     }
     bctx.save();
     if (soul._hitFlash > 0) soul._hitFlash--;
-    bctx.fillStyle = (soul._hitFlash > 0 && Math.floor(soul._hitFlash / 4) % 2 === 0) ? 'white' : '#ff0055'; 
-    bctx.translate(soul.x, soul.y);
-    bctx.beginPath();
-    bctx.moveTo(0, soul.size * 0.4);
-    bctx.bezierCurveTo(soul.size*0.7, -soul.size*0.1, soul.size*0.8, -soul.size*0.8, 0, -soul.size*0.5);
-    bctx.bezierCurveTo(-soul.size*0.8, -soul.size*0.8, -soul.size*0.7, -soul.size*0.1, 0, soul.size*0.4);
-    bctx.fill();
+    // Vẽ soul là khối vuông màu xanh như player (thay vì tim đỏ)
+    const soulColor = (soul._hitFlash > 0 && Math.floor(soul._hitFlash / 4) % 2 === 0) ? 'white' : '#007bff';
+    bctx.fillStyle = soulColor;
+    bctx.fillRect(soul.x - soul.size/2, soul.y - soul.size/2, soul.size, soul.size);
     bctx.restore();
 
     dodgeTimer -= 1/60;
