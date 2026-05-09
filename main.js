@@ -41,11 +41,11 @@ bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
 // ===== SFX =====
-const sfxPickupKey  = new Audio('sfx_key.mp3');      // Nhặt chìa khóa
+const sfxPickupKey  = new Audio('sfx_key.wav');      // Nhặt chìa khóa
 sfxPickupKey.volume  = 0.8;
-const sfxPickupItem = new Audio('sfx_item.mp3');     // Nhặt vật phẩm ẩn
+const sfxPickupItem = new Audio('sfx_item.wav');     // Nhặt vật phẩm ẩn
 sfxPickupItem.volume = 0.7;
-const sfxJumpscare  = new Audio('sfx_jumpscare.mp3'); // Jumpscare
+const sfxJumpscare  = new Audio('sfx_jumpscare.wav'); // Jumpscare
 sfxJumpscare.volume  = 1.0;
 
 // Footstep tổng hợp bằng Web Audio API (không cần file âm thanh)
@@ -78,6 +78,114 @@ function playFootstep() {
 
 function playSFX(audio) {
     try { audio.currentTime = 0; audio.play().catch(() => {}); } catch(e) {}
+}
+
+// ===== BOSS BATTLE SFX (Web Audio API) =====
+
+// Tiếng tấn công boss: "thud" mạnh + flash tần số cao
+function playBossHitSFX() {
+    try {
+        const ac = getAudioCtx();
+        // Layer 1: tiếng đập thấp
+        const osc1 = ac.createOscillator();
+        const g1   = ac.createGain();
+        osc1.connect(g1); g1.connect(ac.destination);
+        osc1.type = 'square';
+        osc1.frequency.setValueAtTime(180, ac.currentTime);
+        osc1.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.18);
+        g1.gain.setValueAtTime(0.35, ac.currentTime);
+        g1.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2);
+        osc1.start(ac.currentTime); osc1.stop(ac.currentTime + 0.2);
+        // Layer 2: tiếng "crack" cao
+        const osc2 = ac.createOscillator();
+        const g2   = ac.createGain();
+        osc2.connect(g2); g2.connect(ac.destination);
+        osc2.type = 'sawtooth';
+        osc2.frequency.setValueAtTime(900, ac.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(200, ac.currentTime + 0.08);
+        g2.gain.setValueAtTime(0.2, ac.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1);
+        osc2.start(ac.currentTime); osc2.stop(ac.currentTime + 0.1);
+    } catch(e) {}
+}
+
+// Tiếng HOPE: chord bùng sáng (3 nốt cùng lúc)
+function playHopeSFX() {
+    try {
+        const ac = getAudioCtx();
+        const freqs = [523, 659, 784]; // C5, E5, G5
+        freqs.forEach((freq, i) => {
+            const osc = ac.createOscillator();
+            const g   = ac.createGain();
+            osc.connect(g); g.connect(ac.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0, ac.currentTime + i * 0.05);
+            g.gain.linearRampToValueAtTime(0.18, ac.currentTime + i * 0.05 + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.05 + 0.5);
+            osc.start(ac.currentTime + i * 0.05);
+            osc.stop(ac.currentTime + i * 0.05 + 0.6);
+        });
+    } catch(e) {}
+}
+
+// Tiếng hồi máu (DREAM): giai điệu nhẹ đi lên
+function playHealSFX() {
+    try {
+        const ac = getAudioCtx();
+        const notes = [392, 494, 587]; // G4, B4, D5
+        notes.forEach((freq, i) => {
+            const osc = ac.createOscillator();
+            const g   = ac.createGain();
+            osc.connect(g); g.connect(ac.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.12, ac.currentTime + i * 0.12);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.12 + 0.25);
+            osc.start(ac.currentTime + i * 0.12);
+            osc.stop(ac.currentTime + i * 0.12 + 0.3);
+        });
+    } catch(e) {}
+}
+
+// Tiếng bị đạn trúng: noise burst + pitch drop
+function playPlayerHitSFX() {
+    try {
+        const ac = getAudioCtx();
+        const osc = ac.createOscillator();
+        const g   = ac.createGain();
+        osc.connect(g); g.connect(ac.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, ac.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ac.currentTime + 0.15);
+        g.gain.setValueAtTime(0.3, ac.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.18);
+        osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.2);
+    } catch(e) {}
+}
+
+// Tiếng boss bại: fanfare ngắn đi lên
+function playVictorySFX() {
+    try {
+        const ac = getAudioCtx();
+        const melody = [
+            { freq: 523, t: 0.0 },  // C5
+            { freq: 659, t: 0.15 }, // E5
+            { freq: 784, t: 0.3 },  // G5
+            { freq: 1047, t: 0.5 }, // C6
+        ];
+        melody.forEach(({ freq, t }) => {
+            const osc = ac.createOscillator();
+            const g   = ac.createGain();
+            osc.connect(g); g.connect(ac.destination);
+            osc.type = 'square';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.2, ac.currentTime + t);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + 0.3);
+            osc.start(ac.currentTime + t);
+            osc.stop(ac.currentTime + t + 0.35);
+        });
+    } catch(e) {}
 }
 
 function showStoryScreen(type) {
@@ -713,6 +821,7 @@ function dodgeLoop() {
 
     if (hitThisFrame) {
         battleHP = Math.max(0, battleHP - 5*dodgeDamage);
+        playPlayerHitSFX();  // SFX bị đạn trúng
         animateHP();
     }
     bctx.save();
@@ -911,6 +1020,7 @@ window.battleAction = async function(action) {
         let dmg = Math.floor(Math.random() * 20) + 15 + (bossPhaseIndex === 2 ? 5 : 0);
         bossHP = Math.max(0, bossHP - dmg);
         updateBossPhase();
+        playBossHitSFX();  // SFX tấn công
         // Boss shake effect
         const bossImg = document.querySelector('.battle-scene img');
         if (bossImg) { bossImg.style.filter = 'drop-shadow(0 0 10px red) brightness(3)'; setTimeout(() => bossImg.style.filter = 'drop-shadow(0 0 10px red)', 300); }
@@ -922,6 +1032,7 @@ window.battleAction = async function(action) {
             bossHP = Math.max(0, bossHP - dmg);
             hopeisused = true;
             updateBossPhase();
+            playHopeSFX();   // SFX hope bùng sáng
             await typeDialog(`* ${hiddenItemsFound} mảnh ký ức bùng sáng! UIT cộng hưởng với bạn — Boss nhận ${dmg} sát thương KHỔng lồ!`);
         } else if (hopeisused) {
             await typeDialog(`* Bạn đã dùng hết những ký ức đó rồi... nhưng chúng vẫn sống trong tim bạn.`);
@@ -935,6 +1046,7 @@ window.battleAction = async function(action) {
         let heal = bossPhaseIndex === 2 ? 15 : 30;
         battleHP = Math.min(100, battleHP + heal);
         animateHP();
+        playHealSFX();   // SFX hồi máu
         await typeDialog(`* Bạn nhắm mắt hồi tưởng về những ngày tháng tươi đẹp ở UIT... hồi ${heal} HP.`);
     }
     else if (action === 'ESCAPE') {
@@ -945,6 +1057,7 @@ window.battleAction = async function(action) {
 
     if (bossHP <= 0) {
         bossMusic.pause();
+        playVictorySFX();  // SFX chiến thắng
         if (battleCanvas) battleCanvas.remove(), battleCanvas = null;
         await typeDialog("* N... Không thể... Sao một sinh viên lại có thể...");
         await new Promise(r => setTimeout(r, 1000));
