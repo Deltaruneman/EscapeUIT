@@ -40,6 +40,46 @@ const bossMusic = new Audio('LastChance42.wav');
 bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
+// ===== SFX =====
+const sfxPickupKey  = new Audio('sfx_key.wav');      // Nhặt chìa khóa
+sfxPickupKey.volume  = 0.8;
+const sfxPickupItem = new Audio('sfx_item.wav');     // Nhặt vật phẩm ẩn
+sfxPickupItem.volume = 0.7;
+const sfxJumpscare  = new Audio('sfx_jumpscare.wav'); // Jumpscare
+sfxJumpscare.volume  = 1.0;
+
+// Footstep tổng hợp bằng Web Audio API (không cần file âm thanh)
+let _audioCtx = null;
+let _isMoving = false;
+let _footstepTimer = 0;
+const FOOTSTEP_INTERVAL = 18; // frames giữa 2 bước chân (~0.3s ở 60fps)
+
+function getAudioCtx() {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return _audioCtx;
+}
+
+function playFootstep() {
+    try {
+        const ac = getAudioCtx();
+        const osc  = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110 + Math.random() * 50, ac.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(55, ac.currentTime + 0.09);
+        gain.gain.setValueAtTime(0.12, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1);
+        osc.start(ac.currentTime);
+        osc.stop(ac.currentTime + 0.1);
+    } catch(e) {}
+}
+
+function playSFX(audio) {
+    try { audio.currentTime = 0; audio.play().catch(() => {}); } catch(e) {}
+}
+
 function showStoryScreen(type) {
     isPaused = true;
     storyMode = type;
@@ -178,6 +218,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function triggerJumpscare() {
     bgMusic.pause();
+    playSFX(sfxJumpscare);   // SFX jumpscare
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
@@ -190,7 +231,8 @@ function triggerJumpscare() {
         if (deathCount == 5) showStoryScreen("ending_bad");
         else {
             player.x = 400; player.y = 300;
-            currentRoomX = 0; currentRoomY = 0; 
+            currentRoomX = 0; currentRoomY = 0;
+            bgMusic.play().catch(() => {}); // Tiếp tục nhạc sau jumpscare
             gameRunning = true;
         }
     }, 1500);
@@ -200,6 +242,10 @@ function update() {
     if (!gameRunning || isPaused) return;
 
     let nx = player.x, ny = player.y;
+    const _moving = (keysPressed['KeyW'] || keysPressed['ArrowUp'] ||
+                     keysPressed['KeyS'] || keysPressed['ArrowDown'] ||
+                     keysPressed['KeyA'] || keysPressed['ArrowLeft'] ||
+                     keysPressed['KeyD'] || keysPressed['ArrowRight']);
     if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
     if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
     if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
@@ -208,6 +254,18 @@ function update() {
         player.x = nx;
         player.y = ny;
     }
+
+    // Footstep SFX
+    if (_moving) {
+        _footstepTimer++;
+        if (_footstepTimer >= FOOTSTEP_INTERVAL) {
+            _footstepTimer = 0;
+            playFootstep();
+        }
+    } else {
+        _footstepTimer = 0;
+    }
+
     if (keysPressed['KeyP']) 
    showStoryScreen("ending_good");
     
@@ -229,14 +287,15 @@ function update() {
         const countUI = document.getElementById('key-count');   
         document.getElementById('key-count').innerText = keysFound;
         if (countUI) countUI.innerText = keysFound;
+        playSFX(sfxPickupKey);   // SFX nhặt chìa khóa
         showStoryScreen("key"); 
     }
-if (map[pr] && map[pr][pc] === 5) {
+    if (map[pr] && map[pr][pc] === 5) {
         map[pr][pc] = 0;
         hiddenItemsFound++;
-
         const countUI = document.getElementById('item-count');
         if (countUI) countUI.innerText = hiddenItemsFound;
+        playSFX(sfxPickupItem);  // SFX nhặt vật phẩm ẩn
         showStoryScreen("hidden_item"); 
     }
     enemies.forEach(enemy => {
@@ -313,84 +372,8 @@ function draw() {
 
 
 
-function gameLoop() {
-    if (!isPaused && gameRunning) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    bgMusic.play().catch(() => {});
-        updatePlayer();
-        updateEnemies();
-        renderGame();
-    }
-    requestAnimationFrame(gameLoop);
-}
-
-function updatePlayer() {
-    if ((keysPressed['KeyW'] || keysPressed['ArrowUp']) ) ny -= player.speed;
-    if ((keysPressed['KeyS'] || keysPressed['ArrowDown']) ) ny += player.speed;
-    if ((keysPressed['KeyA'] || keysPressed['ArrowLeft']) ) nx -= player.speed;
-    if ((keysPressed['KeyD'] || keysPressed['ArrowRight']) ) nx += player.speed;
-    if (canMoveTo(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
-    }
-    if (keysPressed['KeyP']) 
-   showStoryScreen("ending_good");
-    
-    if (!isColliding(player.x, ny, player.size, currentRoomX, currentRoomY)) player.y = ny;
-    if (!isColliding(nx, player.y, player.size, currentRoomX, currentRoomY)) player.x = nx;
-
-    if (player.x < -15) { currentRoomX--; player.x = 780; }
-    else if (player.x > 790) { currentRoomX++; player.x = 10; }
-    if (player.y < -15) { currentRoomY--; player.y = 580; }
-    else if (player.y > 590) { currentRoomY++; player.y = 10; }
-
-    const map = getMap(currentRoomX, currentRoomY);
-    let pc = Math.floor((player.x + 12)/TILE_SIZE), pr = Math.floor((player.y + 12)/TILE_SIZE);
-    
-    // Nhặt chìa khóa
-    if (map[pr] && map[pr][pc] === 3) {
-        map[pr][pc] = 0;
-        keysFound++;
-        const countUI = document.getElementById('key-count');   
-        document.getElementById('key-count').innerText = keysFound;
-        if (countUI) countUI.innerText = keysFound;
-        showStoryScreen("key"); 
-    }
-if (map[pr] && map[pr][pc] === 5) {
-        map[pr][pc] = 0;
-        hiddenItemsFound++;
-
-        const countUI = document.getElementById('item-count');
-        if (countUI) countUI.innerText = hiddenItemsFound;
-        showStoryScreen("hidden_item"); 
-    }
-    enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        
-        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
-            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
-                triggerJumpscare();
-            }
-        }
-    });
-}
-
-function updateEnemies() {
-    enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
-        
-        if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
-            if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
-                triggerJumpscare();
-            }
-        }
-    });
-}
-
-function renderGame() {
-    draw();
-}
+// gameLoop(), updatePlayer(), updateEnemies(), renderGame() đã được gộp vào loop() + update() + draw() bên dưới
+// để tránh chạy 2 vòng lặp song song và tránh gọi bgMusic.play() mỗi frame
 
 function loop() { 
     update(); 
