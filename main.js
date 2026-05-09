@@ -7,7 +7,7 @@ canvas.height = 600;
 const wallImg = new Image();
 wallImg.src = 'images/wall.png';
 const safeZoneImg = new Image();
-safeZoneImg.src = 'images/safe_zone.png';
+safeZoneImg.src = 'images/safezone.png';
 const keyImg = new Image();
 keyImg.src = 'images/key.png';
 const hopeImg = new Image();
@@ -117,11 +117,33 @@ function isColliding(x, y, size, rX, rY) {
     return false;
 }
 
+// ===== HELP OVERLAY =====
+function toggleHelp() {
+    const overlay = document.getElementById('help-overlay');
+    overlay.classList.toggle('active');
+    if (overlay.classList.contains('active')) {
+        isPaused = true;
+    } else {
+        const storyVisible = document.getElementById('story-screen').style.display === 'flex';
+        if (!storyVisible) isPaused = false;
+    }
+}
+window.toggleHelp = toggleHelp;
+
 // Input Xử lý mượt mà
 const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
     if (isPaused && (e.code === 'KeyJ'||e.code === 'Enter')) handleNextStory();
+    // Phím ? để mở/đóng help
+    if (e.code === 'Slash' && e.shiftKey) toggleHelp();
+    // ESC đóng help overlay nếu đang mở
+    if (e.code === 'Escape') {
+        const helpOverlay = document.getElementById('help-overlay');
+        if (helpOverlay && helpOverlay.classList.contains('active')) {
+            toggleHelp();
+        }
+    }
 };
 window.onkeyup = (e) => keysPressed[e.code] = false;
 
@@ -261,13 +283,6 @@ function draw() {
                     ctx.fillStyle="cyan"; ctx.beginPath(); ctx.arc(c*50+25, r*50+25, 8, 0, 7); ctx.fill();
                 }
             }
-            if(map[r][c]===4) {
-                if(safeZoneImg.complete && safeZoneImg.naturalWidth > 0) {
-                    ctx.drawImage(safeZoneImg, c*50, r*50, 50, 50);
-                } else {
-                    ctx.fillStyle="green"; ctx.fillRect(c*50, r*50, 50, 50);
-                }
-            }
         }
     }
     
@@ -276,6 +291,19 @@ function draw() {
     
     // Vẽ Player
     ctx.fillStyle = "#007bff"; ctx.fillRect(player.x, player.y, 25, 25);
+
+    // Vẽ SafeZone (tile 4) SAU player để đè lên trên
+    for(let r=0; r<ROWS; r++){
+        for(let c=0; c<COLS; c++){
+            if(map[r][c]===4) {
+                if(safeZoneImg.complete && safeZoneImg.naturalWidth > 0) {
+                    ctx.drawImage(safeZoneImg, c*50, r*50, 50, 50);
+                } else {
+                    ctx.fillStyle="rgba(0,200,0,0.7)"; ctx.fillRect(c*50, r*50, 50, 50);
+                }
+            }
+        }
+    }
 
     // Sương mù (Vignette effect)
     const grad = ctx.createRadialGradient(player.x+12, player.y+12, 50, player.x+12, player.y+12, 150);
@@ -978,16 +1006,9 @@ function startBossFight(bossId) {
     console.log(`Bắt đầu chiến đấu với Boss ${bossId}`);
     bossMusic.play();
     isPaused = true;
-
-    // Logic chiến đấu với boss
-    // ...
-
-    // Khi boss bị đánh bại
     defeatedBosses.add(bossId);
     console.log(`Boss ${bossId} đã bị đánh bại.`);
     isPaused = false;
     bossMusic.pause();
-
-    // Quay lại menu chính sau khi đánh bại boss
     returnToMenu();
 }

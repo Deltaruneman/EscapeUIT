@@ -73,6 +73,15 @@
     Keys: <span id="key-count" style="color:yellow;">0</span> / 4 &nbsp;&nbsp;|&nbsp;&nbsp;
     Hope: <span id="item-count" style="color:cyan;">0</span>
 </div>
+
+<!-- Nút Help -->
+<button id="help-btn" onclick="toggleHelp()">?</button>
+
+<!-- Help Overlay -->
+<div id="help-overlay">
+    <button id="help-close-btn" onclick="toggleHelp()">✕</button>
+    <img id="help-img" src="help.png" alt="Hướng dẫn chơi">
+</div>
 <div id="respawn-container" class="full-overlay" style="display: none;">
     <button id="respawn-btn">Respawn</button>
 </div>
