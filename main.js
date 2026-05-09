@@ -317,7 +317,7 @@ function gameLoop() {
     if (!isPaused && gameRunning) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
+    bgMusic.play().catch(() => {});
         updatePlayer();
         updateEnemies();
         renderGame();
