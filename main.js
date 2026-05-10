@@ -34,7 +34,7 @@ const bgMusic = new Audio('bgm.wav');
 bgMusic.loop = true; 
 bgMusic.volume = 0.5; 
 
-const bossMusic = new Audio('LastChance42.wav');
+const bossMusic = new Audio('BattleBG.wav');
 bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
@@ -45,6 +45,18 @@ const sfxPickupItem = new Audio('sfx_item.mp3');
 sfxPickupItem.volume = 0.7;
 const sfxJumpscare  = new Audio('sfx_jumpscare.mp3'); 
 sfxJumpscare.volume  = 1.0;
+
+// ===== BOSS FIGHT SFX (mp3) =====
+const sfxBossHit    = new Audio('sfx_boss_hit.mp3');
+sfxBossHit.volume   = 0.9;
+const sfxHope       = new Audio('sfx_hope.mp3');
+sfxHope.volume      = 0.85;
+const sfxHeal       = new Audio('sfx_heal.mp3');
+sfxHeal.volume      = 0.8;
+const sfxPlayerHit  = new Audio('sfx_player_hit.mp3');
+sfxPlayerHit.volume = 0.9;
+const sfxVictory    = new Audio('sfx_victory.mp3');
+sfxVictory.volume   = 1.0;
 
 let _audioCtx = null;
 let _isMoving = false;
@@ -79,104 +91,25 @@ function playSFX(audio) {
 
 
 function playBossHitSFX() {
-    try {
-        const ac = getAudioCtx();
-        const osc1 = ac.createOscillator();
-        const g1   = ac.createGain();
-        osc1.connect(g1); g1.connect(ac.destination);
-        osc1.type = 'square';
-        osc1.frequency.setValueAtTime(180, ac.currentTime);
-        osc1.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.18);
-        g1.gain.setValueAtTime(0.35, ac.currentTime);
-        g1.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2);
-        osc1.start(ac.currentTime); osc1.stop(ac.currentTime + 0.2);
-        const osc2 = ac.createOscillator();
-        const g2   = ac.createGain();
-        osc2.connect(g2); g2.connect(ac.destination);
-        osc2.type = 'sawtooth';
-        osc2.frequency.setValueAtTime(900, ac.currentTime);
-        osc2.frequency.exponentialRampToValueAtTime(200, ac.currentTime + 0.08);
-        g2.gain.setValueAtTime(0.2, ac.currentTime);
-        g2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.1);
-        osc2.start(ac.currentTime); osc2.stop(ac.currentTime + 0.1);
-    } catch(e) {}
+    playSFX(sfxBossHit);
 }
 
 function playHopeSFX() {
-    try {
-        const ac = getAudioCtx();
-        const freqs = [523, 659, 784]; 
-        freqs.forEach((freq, i) => {
-            const osc = ac.createOscillator();
-            const g   = ac.createGain();
-            osc.connect(g); g.connect(ac.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            g.gain.setValueAtTime(0, ac.currentTime + i * 0.05);
-            g.gain.linearRampToValueAtTime(0.18, ac.currentTime + i * 0.05 + 0.05);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.05 + 0.5);
-            osc.start(ac.currentTime + i * 0.05);
-            osc.stop(ac.currentTime + i * 0.05 + 0.6);
-        });
-    } catch(e) {}
+    playSFX(sfxHope);
 }
 
 function playHealSFX() {
-    try {
-        const ac = getAudioCtx();
-        const notes = [392, 494, 587]; 
-        notes.forEach((freq, i) => {
-            const osc = ac.createOscillator();
-            const g   = ac.createGain();
-            osc.connect(g); g.connect(ac.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            g.gain.setValueAtTime(0.12, ac.currentTime + i * 0.12);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.12 + 0.25);
-            osc.start(ac.currentTime + i * 0.12);
-            osc.stop(ac.currentTime + i * 0.12 + 0.3);
-        });
-    } catch(e) {}
+    playSFX(sfxHeal);
 }
 
 
 function playPlayerHitSFX() {
-    try {
-        const ac = getAudioCtx();
-        const osc = ac.createOscillator();
-        const g   = ac.createGain();
-        osc.connect(g); g.connect(ac.destination);
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(400, ac.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(80, ac.currentTime + 0.15);
-        g.gain.setValueAtTime(0.3, ac.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.18);
-        osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.2);
-    } catch(e) {}
+    playSFX(sfxPlayerHit);
 }
 
 
 function playVictorySFX() {
-    try {
-        const ac = getAudioCtx();
-        const melody = [
-            { freq: 523, t: 0.0 },  
-            { freq: 659, t: 0.15 }, 
-            { freq: 784, t: 0.3 },  
-            { freq: 1047, t: 0.5 }, 
-        ];
-        melody.forEach(({ freq, t }) => {
-            const osc = ac.createOscillator();
-            const g   = ac.createGain();
-            osc.connect(g); g.connect(ac.destination);
-            osc.type = 'square';
-            osc.frequency.value = freq;
-            g.gain.setValueAtTime(0.2, ac.currentTime + t);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + 0.3);
-            osc.start(ac.currentTime + t);
-            osc.stop(ac.currentTime + t + 0.35);
-        });
-    } catch(e) {}
+    playSFX(sfxVictory);
 }
 
 function showStoryScreen(type) {
