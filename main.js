@@ -38,7 +38,7 @@ const bossMusic = new Audio('LastChance42.wav');
 bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
-// ===== SFX =====
+// SFX chung
 const sfxPickupKey  = new Audio('sfx_key.mp3');     
 sfxPickupKey.volume  = 0.8;
 const sfxPickupItem = new Audio('sfx_item.mp3');    
@@ -46,7 +46,7 @@ sfxPickupItem.volume = 0.7;
 const sfxJumpscare  = new Audio('sfx_jumpscare.mp3'); 
 sfxJumpscare.volume  = 1.0;
 
-// ===== BOSS FIGHT SFX (mp3) =====
+// BOSS BATTLE SFX
 const sfxBossHit    = new Audio('sfx_boss_hit.mp3');
 sfxBossHit.volume   = 0.9;
 const sfxHope       = new Audio('sfx_hope.mp3');
@@ -153,7 +153,13 @@ function showStoryScreen(type) {
         bossMusic.pause();
         img.src = "bg.png";
         text.innerText = "Chúc mừng tốt nghiệp! Bạn mang theo những ký ức của UIT và bước ra thế giới rộng lớn hơn.";
-        footer.innerHTML = '<button class="retry-btn" style="background: #003366; border-color: #0055cc;" onclick="location.reload()">CHƠI LẠI</button>';
+        footer.innerHTML = `
+            <div style="display:flex; gap:20px; align-items:center; justify-content:center; flex-wrap:wrap;">
+                <button class="retry-btn" style="background: #003366; border-color: #0055cc;" onclick="location.reload()">CHƠI LẠI</button>
+                <button id="memory-book-btn" onclick="openMemoryBook()" title="Xem lịch sử UIT">
+                    <img src="images/uitlogo.png" alt="Ký Ức UIT" onerror="this.style.display='none'; this.parentNode.innerHTML='📖 Ký Ức UIT';">
+                </button>
+            </div>`;
         screen.style.display = 'flex';
         return;
     }
@@ -224,9 +230,7 @@ window.onkeydown = (e) => {
     }
 };
 window.onkeyup = (e) => keysPressed[e.code] = false;
-//  GẮN SỰ KIỆN GIAO DIỆN CHUẨN
 window.addEventListener('DOMContentLoaded', () => {
-    // Xử lý nút Start
     const startBtn = document.getElementById('start-btn');
     if (startBtn) {
         startBtn.onclick = () => {
@@ -319,7 +323,7 @@ function update() {
         const countUI = document.getElementById('key-count');   
         document.getElementById('key-count').innerText = keysFound;
         if (countUI) countUI.innerText = keysFound;
-        playSFX(sfxPickupKey);   // SFX nhặt chìa khóa
+        playSFX(sfxPickupKey);   
         showStoryScreen("key"); 
     }
     if (map[pr] && map[pr][pc] === 5) {
@@ -327,7 +331,7 @@ function update() {
         hiddenItemsFound++;
         const countUI = document.getElementById('item-count');
         if (countUI) countUI.innerText = hiddenItemsFound;
-        playSFX(sfxPickupItem);  // SFX nhặt vật phẩm ẩn
+        playSFX(sfxPickupItem);  
         showStoryScreen("hidden_item"); 
     }
     enemies.forEach(enemy => {
@@ -405,12 +409,12 @@ loop();
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        isPaused = !isPaused; // Toggle pause state
+        isPaused = !isPaused;
         const pauseScreen = document.getElementById('pause-screen');
         if (isPaused) {
-            pauseScreen.style.display = 'flex'; // Show pause screen
+            pauseScreen.style.display = 'flex'; 
         } else {
-            pauseScreen.style.display = 'none'; // Hide pause screen
+            pauseScreen.style.display = 'none'; 
         }
     }
 });
@@ -453,7 +457,7 @@ let battleHP = 100;
 let bossHP = 200;
 let isPlayerTurn = false;
 let battleCanvas, battleCtx;
-let battlePhase = 'menu'; // 'menu' | 'dodge' | 'result'
+let battlePhase = 'menu'; 
 let soul = { x: 200, y: 200, size: 12, speed: 4 };
 let bullets = [];
 let dodgeTimer = 0;
@@ -803,7 +807,6 @@ window.startBossBattle = function() {
     introOverlay.classList.add('active');
     setTimeout(() => {
         introFlash.classList.add('flash');
-        // Rung màn hình
         battleScreen.style.animation = 'bossShakeIntro 0.5s ease-out';
         setTimeout(() => { battleScreen.style.animation = ''; }, 500);
     }, 100);
@@ -938,6 +941,22 @@ async function playBossEndingDialogues() {
 }
 
 const defeatedBosses = new Set();
+
+window.openMemoryBook = function() {
+    const overlay = document.getElementById('memory-book-overlay');
+    const body = document.getElementById('memory-book-body');
+    body.innerHTML = hiddenItemScenes.map((scene, i) => `
+        <div class="memory-entry">
+            <span class="memory-year">${scene.text.split(':')[0]}</span>
+            <p>${scene.text.split(':').slice(1).join(':').trim()}</p>
+        </div>
+    `).join('');
+    overlay.classList.add('active');
+};
+
+window.closeMemoryBook = function() {
+    document.getElementById('memory-book-overlay').classList.remove('active');
+};
 
 function returnToMenu() {
     console.log("Quay lại menu chính.");

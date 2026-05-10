@@ -1,7 +1,4 @@
-// Thêm roomX và roomY vào để xác định phòng chứa Safe Zone (ví dụ phòng bắt đầu 0, 0)
 const SAFE_ZONE = { x: 300, y: 250, width: 200, height: 150, roomX: 0, roomY: 0 };
-
-// Cache ảnh enemy — preload toàn bộ ngay khi script chạy
 const enemyImageCache = {};
 const ENEMY_IMAGE_NAMES = ['red', 'green', 'pink'];
 
@@ -22,23 +19,13 @@ function getEnemyImage(name) {
     }
     return enemyImageCache[name];
 }
-
-// --- INVINCIBILITY FRAMES ---
-// Sau khi player chết, enemy sẽ không tấn công được trong 1 giây
 let invincibleUntil = 0;
 function setInvincible(ms = 1000) { invincibleUntil = Date.now() + ms; }
 function isInvincible() { return Date.now() < invincibleUntil; }
-
-// Cập nhật hàm kiểm tra Safe Zone để check thêm phòng
 function isInSafeZone(x, y, roomX, roomY) {
-    // TILE_SIZE = 50, size của player = 25
     const map = getMap(roomX, roomY);
-    
-    // Lấy toạ độ tâm của người chơi/quái vật để check cho chính xác
     let col = Math.floor((x + 12.5) / 50); 
     let row = Math.floor((y + 12.5) / 50);
-    
-    // Nếu Player đang dẫm lên ô số 4 -> đang trong Safe Zone
     if (map && map[row] && map[row][col] === 4) {
         return true;
     }
@@ -59,8 +46,6 @@ class BaseEnemy {
         this.wanderTargetX = null;
         this.wanderTargetY = null;
     }
-
-    // AI Tìm đường dùng BFS
     findPath(startC, startR, targetC, targetR, map) {
         if (startC < 0 || startC >= COLS || startR < 0 || startR >= ROWS) return [];
         if (startC === targetC && startR === targetR) return [];
@@ -101,8 +86,6 @@ class BaseEnemy {
         if (this.y < -15) { this.roomY--; this.y = 580; }
         else if (this.y > 590) { this.roomY++; this.y = 10; }
     }
-
-    // TÌM LỐI RA: Dùng để Enemy đi mép bản đồ qua phòng khác mà không bị đâm xuyên tường
     findClosestExit(map, targetRoomX, targetRoomY, player) {
         let validExits = [];
         let targetCol = -1, targetRow = -1;
@@ -140,7 +123,6 @@ class BaseEnemy {
         let validTiles = [];
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
-                // QUAN TRỌNG: Không cho AI đi dạo vào tường (1) và Safe Zone (4)
                 if (map[r] && map[r][c] !== 1 && map[r][c] !== 4) {
                     validTiles.push({c, r});
                 }
@@ -159,8 +141,6 @@ class BaseEnemy {
         }
         this.chaseMove(this.wanderTargetX, this.wanderTargetY, map);
     }
-
-    // ĐÃ FIX: Thuật toán di chuyển mượt bằng BFS 100%, khắc phục triệt để lỗi bỏ đuôi Player
     chaseMove(targetX, targetY, map) {
         let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
         let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
@@ -185,8 +165,6 @@ class BaseEnemy {
                 this.y += (dy / dist) * moveDist;
             }
         } else {
-            // Đã tới CÙNG Ô LƯỚI với target, tiếp tục lao thẳng bám vào tọa độ tuyệt đối của mục tiêu 
-            // HOẶC mục tiêu đang nằm ngoài viền màn hình (đang lúc chuyển phòng)
             if ((ec === safeTc && er === safeTr) || targetX < 0 || targetX > COLS * TILE_SIZE || targetY < 0 || targetY > ROWS * TILE_SIZE) {
                 let dx = targetX - this.x, dy = targetY - this.y;
                 let dist = Math.hypot(dx, dy);
@@ -196,7 +174,6 @@ class BaseEnemy {
                     this.y += (dy / dist) * moveDist;
                 }
             } else {
-                // Kẹt thực sự ở sau tường (hiếm), ép chọn mục tiêu wander mới
                 this.pickRandomWanderTarget(map);
             }
         }
@@ -208,7 +185,6 @@ class BaseEnemy {
             if (img.complete && img.naturalWidth > 0) {
                 ctx.drawImage(img, this.x, this.y, this.size, this.size);
             } else {
-                // Fallback: vẽ hình chữ nhật màu trong khi ảnh đang load
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.size, this.size);
             }
@@ -233,23 +209,18 @@ class BaseEnemy {
     }
 }
 
-// 🔴 Loại Đỏ: Bám đuôi BFS + smooth acceleration + dự đoán vị trí player
 class RedEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
-        super(startX, startY, baseSpeed, "red"); // Sử dụng đúng tên tệp hình ảnh
-        // Momentum / smooth movement
+        super(startX, startY, baseSpeed, "red"); 
         this.vx = 0;
         this.vy = 0;
         this.acceleration = 0.18;
         this.friction = 0.82;
-        // Rage mode khi player gần
         this.isRaging = false;
-        // Predict player position
         this.predictionStrength = 0.35;
     }
 
     update(player, currentRoomX, currentRoomY, keysFound) {
-        // Scale speed theo số key, rage burst khi rất gần
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
         const sameRoom = (this.roomX === currentRoomX && this.roomY === currentRoomY);
         this.isRaging = sameRoom && dist < 120;
@@ -266,8 +237,6 @@ class RedEnemy extends BaseEnemy {
 
         let targetX = player.x;
         let targetY = player.y;
-
-        // Dự đoán vị trí player dựa trên velocity ước tính (chỉ khi cùng phòng)
         if (sameRoom && player.lastX !== undefined) {
             let pvx = player.x - player.lastX;
             let pvy = player.y - player.lastY;
@@ -300,7 +269,6 @@ class RedEnemy extends BaseEnemy {
         this.handleRoomTransition();
     }
 
-    // Di chuyển với momentum (mượt hơn chaseMove gốc)
     chaseMoveSmooth(targetX, targetY, map) {
         let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
         let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
@@ -321,12 +289,10 @@ class RedEnemy extends BaseEnemy {
 
         let d = Math.hypot(dx, dy);
         if (d > 0) {
-            // Tích lũy vận tốc (smooth acceleration)
             this.vx += (dx / d) * this.currentSpeed * this.acceleration;
             this.vy += (dy / d) * this.currentSpeed * this.acceleration;
         }
 
-        // Clamp tốc độ tối đa
         let speed = Math.hypot(this.vx, this.vy);
         if (speed > this.currentSpeed) {
             this.vx = (this.vx / speed) * this.currentSpeed;
@@ -360,7 +326,6 @@ class RedEnemy extends BaseEnemy {
     }
 }
 
-// 🟢 Loại Xanh: Chỉ di chuyển ngẫu nhiên
 class GreenEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "green");
@@ -373,7 +338,6 @@ class GreenEnemy extends BaseEnemy {
     }
 }
 
-// 🌸 Loại Hồng: Bảo vệ Key/Item
 class PinkEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "pink");
@@ -383,8 +347,6 @@ class PinkEnemy extends BaseEnemy {
         const map = getMap(this.roomX, this.roomY);
         let isChasing = false;
         const detectRadius = 250; 
-
-        // Ngừng rượt nếu Player trốn vô Safe Zone hợp lệ
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
             this.wanderMove(map);
             this.handleRoomTransition();

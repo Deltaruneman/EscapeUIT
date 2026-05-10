@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Escape the UIT</title>
+    <title>Escape UIT</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="start-screen" class="full-overlay">
-    <h1 style="font-size: 4rem; color: red;">ESCAPE THE UIT</h1>
+    <h1 style="font-size: 4rem; color: red;">ESCAPE UIT</h1>
     <p>Chúc bạn có 4 năm ở đây thật vui vẻ :)</p>
     <button id="start-btn">CHƠI GAME</button>
 </div>
@@ -17,6 +17,13 @@
     <img id="story-img" src="" alt="Story">
     <div id="story-text" class="text-content"></div>
     <div id="story-footer" class="hint">(Bấm phím [J] để tiếp tục)</div>
+</div>
+<div id="memory-book-overlay">
+    <button id="memory-book-close" onclick="closeMemoryBook()">✕</button>
+    <div id="memory-book-content">
+        <h2 id="memory-book-title">📖 Lịch Sử UIT</h2>
+        <div id="memory-book-body"></div>
+    </div>
 </div>
 
 <div id="jumpscare-overlay">
@@ -36,7 +43,6 @@
 </div>
 <div id="battle-screen" class="full-overlay">
 
-    <!-- Boss intro GIF overlay, xuất hiện đúng vị trí boss -->
     <div id="boss-intro-overlay">
         <img id="boss-intro-gif" src="boss_intro.gif" alt="Boss Intro">
         <div id="boss-intro-flash"></div>
@@ -74,10 +80,9 @@
     Năng lượng UIT: <span id="item-count" style="color:cyan;">0</span>
 </div>
 
-<!-- Nút Help -->
 <button id="help-btn" onclick="toggleHelp()">?</button>
 
-<!-- Help Overlay -->
+// Help Overlay
 <div id="help-overlay">
     <button id="help-close-btn" onclick="toggleHelp()">✕</button>
     <img id="help-img" src="images/help.png" alt="Hướng dẫn chơi">
