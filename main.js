@@ -34,7 +34,7 @@ const bgMusic = new Audio('bgm.wav');
 bgMusic.loop = true; 
 bgMusic.volume = 0.5; 
 
-const bossMusic = new Audio('BattleBG.wav');
+const bossMusic = new Audio('LastChance42.wav');
 bossMusic.loop = true;
 bossMusic.volume = 0.6;
 
@@ -55,7 +55,7 @@ const sfxHeal       = new Audio('sfx_heal.mp3');
 sfxHeal.volume      = 0.8;
 const sfxPlayerHit  = new Audio('sfx_player_hit.mp3');
 sfxPlayerHit.volume = 0.9;
-const sfxVictory    = new Audio('sfx_victory.mp3');
+const sfxVictory    = new Audio('sfx_victory.wav');
 sfxVictory.volume   = 1.0;
 
 let _audioCtx = null;
