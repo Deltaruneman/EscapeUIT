@@ -152,12 +152,12 @@ function showStoryScreen(type) {
         bgMusic.pause();
         bossMusic.pause();
         img.src = "bg.png";
-        text.innerText = "Chúc mừng tốt nghiệp! Bạn mang theo những ký ức của UIT và bước ra thế giới rộng lớn hơn.";
+        text.innerText = "Chúc mừng bạn đã thoát khỏi ác mộng này, đến giờ tiếp tục làm đồ án rồi:))). Bạn không nghĩ là bạn thật sự sẽ thoát khỏi nó đấy chứ :))).";
         footer.innerHTML = `
             <div style="display:flex; gap:20px; align-items:center; justify-content:center; flex-wrap:wrap;">
                 <button class="retry-btn" style="background: #003366; border-color: #0055cc;" onclick="location.reload()">CHƠI LẠI</button>
                 <button id="memory-book-btn" onclick="openMemoryBook()" title="Xem lịch sử UIT">
-                    <img src="images/uitlogo.png" alt="Ký Ức UIT" onerror="this.style.display='none'; this.parentNode.innerHTML='📖 Ký Ức UIT';">
+                    <img src="images/uitlogo.png" alt="Ký Ức UIT" onerror="this.style.display='none'; this.parentNode.innerHTML='📖 UIT Gallery';">
                 </button>
             </div>`;
         screen.style.display = 'flex';

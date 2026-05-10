@@ -2,10 +2,11 @@ const TILE_SIZE = 50;
 const COLS = 16, ROWS = 12;
 
 const storyScenes = [
-    { img: "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75", text: "Bạn là 1 sinh viên bình thường ở UIT." },
-    { img: "https://banqlcs.uit.edu.vn/sites/banqlcs/files/styles/slider/public/slider/uit_dsc_0001_web.jpg?itok=F6x8u5Oi", text: "Trừ việc ngày mai là lễ tốt nghiệp thì tối nay là 1 ngày bình thường." },
-    { img: "https://dep.com.vn/wp-content/uploads/2023/07/4-14.png", text: "Yeh.. vì lí do gì đó mà bạn lại ở đây vào 12 giờ dêm tại UIT. có lẽ và vì hồi hợp chăn?" },
-    { img: "images/red.png",text: "Well, có lẽ khá bình thường nếu bạn hỏi tôi ngoại trừ có 1 thứ gì đó đang theo đuổi bạn... Chờ đã cái gì cơ?!?!" }
+    { img: "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75", text: "Bạn là 1 sinh viên năm 4 bình thường ở UIT." },
+    { img: "https://banqlcs.uit.edu.vn/sites/banqlcs/files/styles/slider/public/slider/uit_dsc_0001_web.jpg?itok=F6x8u5Oi", text: "Bạn đang làm 1 đồ án tốt nghiệp thật peak để ra trường." },
+    { img: "https://dep.com.vn/wp-content/uploads/2023/07/4-14.png", text: "Bây giờ là 12 giờ đêm, bạn vẫn đang chạy deadline liên tục, quá kiệt sức bạn chìm vào 1 cơn ác mộng." },
+    { img: "images/red.png",text: "Giấc mơ này thật kì lạ, xung quanh tối đen như mực và.. chờ đã cái gì đang đuổi theo bạn kia??!?!" },
+    { text: "Sau khi xem xét 1 hồi, bạn nhận ra mình đang bị truy duổi bởi 1 thực thể nào đó trong 1 khu vực tối tắm. Chắn hẳn có các để bạn có thể thoát khỏi đây." }
 ];
 
 const keyCollectScenes = [
