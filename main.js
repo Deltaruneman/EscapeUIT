@@ -854,7 +854,7 @@ window.battleAction = async function(action) {
     }
     else if (action === 'HOPE') {
         if (hiddenItemsFound > 0 && !hopeisused) {
-            let dmg = hiddenItemsFound * 15;
+            let dmg = hiddenItemsFound * 10;
             bossHP = Math.max(0, bossHP - dmg);
             hopeisused = true;
             updateBossPhase();
