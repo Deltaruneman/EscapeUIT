@@ -138,7 +138,7 @@ function showStoryScreen(type) {
         bgMusic.pause();
         img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
         text.innerText = "CHÚC MỪNG! Bạn đã thật sự tìm được 4 mạnh ký ức, linh hồn của bạn trở nên mạnh mẽ hơn bao giờ hết và đã có thể giải thoát bạn khỏi đây!";
-        footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">LÊN NHẬN BẰNG</button>';
+        footer.innerHTML = '<button class="retry-btn" style="background: green; border-color: lime;" onclick="showStoryScreen(\'plot_twist\')">Đến lúc thoát khỏi đây rồi</button>';
         screen.style.display = 'flex';
         return;
     } else if (type === "plot_twist") {
@@ -146,6 +146,14 @@ function showStoryScreen(type) {
         bossMusic.play();
         text.innerText = "Không... Ngươi không thể rời đi, ta sẽ giữ ngươi lại, tât cả các ngươi đều phải ở lại đây.";
         footer.innerHTML = '<button class="retry-btn" onclick="startBossBattle()">Không, tao sẽ không bỏ cuộc!</button>';
+        screen.style.display = 'flex';
+        return;
+    } else if (type === "extraending") {
+        bgMusic.pause();
+        bossMusic.pause();
+        img.src = "https://www.uit.edu.vn/_next/image?url=https%3A%2F%2Fwww.uit.edu.vn%2Fstrapi%2Fuploads%2FUIT_1_e406b7e283.jpg&w=1536&q=75";
+        text.innerText = "Chúc mừng tốt nghiệp! Bạn mang theo những ký ức của UIT và bước ra thế giới rộng lớn hơn.";
+        footer.innerHTML = '<button class="retry-btn" style="background: #003366; border-color: #0055cc;" onclick="location.reload()">CHƠI LẠI</button>';
         screen.style.display = 'flex';
         return;
     }
@@ -880,7 +888,7 @@ window.battleAction = async function(action) {
         await playBossEndingDialogues();
 
         document.getElementById('battle-screen').style.display = 'none';
-        showStoryScreen('ending_good');
+        showStoryScreen('extraending');
         return;
     }
 
@@ -906,20 +914,8 @@ async function playBossEndingDialogues() {
     for (let i = 0; i < bossEndingDialogues.length; i++) {
         const line = bossEndingDialogues[i];
         await typeDialog(line.text);
-        if (line.pause > 0) {
-            await new Promise(r => setTimeout(r, line.pause));
-        } else {
-            // Chờ player bấm J hoặc Enter
-            await new Promise(resolve => {
-                function onKey(e) {
-                    if (e.code === 'KeyJ' || e.code === 'Enter') {
-                        document.removeEventListener('keydown', onKey);
-                        resolve();
-                    }
-                }
-                document.addEventListener('keydown', onKey);
-            });
-        }
+        const waitMs = line.pause > 0 ? line.pause : 1000;
+        await new Promise(r => setTimeout(r, waitMs));
     }
 }
 
