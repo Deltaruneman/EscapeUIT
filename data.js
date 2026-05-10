@@ -103,3 +103,47 @@ const maps = {
 function getMap(rX, rY) {
     return maps[`${rX},${rY}`] || maps["0,0"];
 }
+
+const bossEndingDialogues = [
+    {
+        text: "* ...",
+        pause: 1200
+    },
+    {
+        text: "* Ngươi... .",
+        pause: 0
+    },
+    {
+        text: "* ...",
+        pause: 0
+    },
+    {
+        text: "* ... Có lẽ",
+        pause: 0
+    },
+    {
+        text: "* Thôi không có gì đâu.",
+        pause: 1500
+    },
+    {
+        text: "* Ta .",
+        pause: 0
+    },
+    {
+        text: "* Ta là nơi ngươi đã trưởng thành.",
+        pause: 0
+    },
+    {
+        text: "* Mang theo những ký ức đó đi. Chúng là của ngươi.",
+        pause: 0
+    },
+    {
+        text: "* Và đừng quên... nơi này sẽ luôn là một phần của ngươi.",
+        pause: 2000
+    },
+    {
+        text: "* Chúc mừng tốt nghiệp, sinh viên của ta.",
+        pause: 0
+    }
+    // ← Thêm lời thoại mới vào đây theo cùng định dạng
+];

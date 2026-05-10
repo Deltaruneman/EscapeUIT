@@ -73,6 +73,7 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
 .battle-scene img {
     height: 250px;
     filter: drop-shadow(0 0 10px red);
+    clip-path: inset(5% 4% 5% 4%);
 }
 
 @keyframes float {
@@ -85,6 +86,7 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     width: 80%;
     max-width: 800px;
     margin: 0 auto;
+    border: 4px solid white;
     background: #000;
     padding: 15px;
     box-sizing: border-box;

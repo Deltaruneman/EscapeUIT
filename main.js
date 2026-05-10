@@ -872,15 +872,15 @@ window.battleAction = async function(action) {
 
     if (bossHP <= 0) {
         bossMusic.pause();
-        playVictorySFX();  
+        playVictorySFX();
         if (battleCanvas) battleCanvas.remove(), battleCanvas = null;
-        await typeDialog("* N... Không thể... Sao một sinh viên lại có thể...");
-        await new Promise(r => setTimeout(r, 1000));
-        await typeDialog("* ...Chúc mừng tốt nghiệp. Bạn xứng đáng.");
-        setTimeout(() => {
-            document.getElementById('battle-screen').style.display = 'none';
-            showStoryScreen('ending_good');
-        }, 3000);
+        showBattleMenu(false);
+
+        // Chạy tuần tự qua bossEndingDialogues
+        await playBossEndingDialogues();
+
+        document.getElementById('battle-screen').style.display = 'none';
+        showStoryScreen('ending_good');
         return;
     }
 
@@ -896,6 +896,33 @@ window.battleAction = async function(action) {
 
     await startDodgePhase(bossPhaseIndex === 2 ? 8 : (bossPhaseIndex === 1 ? 5 : 3), dodgeDur, chosenPattern);
 };
+// =====================================================
+// PHÁT TUẦN TỰ LỜI THOẠI BOSS TRƯỚC ENDING
+// Tự động đọc từ mảng bossEndingDialogues trong data.js
+//   - pause > 0 : chờ N ms rồi tự chuyển dòng tiếp theo
+//   - pause = 0 : chờ player bấm [J] / Enter
+// =====================================================
+async function playBossEndingDialogues() {
+    for (let i = 0; i < bossEndingDialogues.length; i++) {
+        const line = bossEndingDialogues[i];
+        await typeDialog(line.text);
+        if (line.pause > 0) {
+            await new Promise(r => setTimeout(r, line.pause));
+        } else {
+            // Chờ player bấm J hoặc Enter
+            await new Promise(resolve => {
+                function onKey(e) {
+                    if (e.code === 'KeyJ' || e.code === 'Enter') {
+                        document.removeEventListener('keydown', onKey);
+                        resolve();
+                    }
+                }
+                document.addEventListener('keydown', onKey);
+            });
+        }
+    }
+}
+
 const defeatedBosses = new Set();
 
 function returnToMenu() {
