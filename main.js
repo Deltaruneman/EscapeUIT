@@ -883,10 +883,7 @@ window.battleAction = async function(action) {
         playVictorySFX();
         if (battleCanvas) battleCanvas.remove(), battleCanvas = null;
         showBattleMenu(false);
-
-        // Chạy tuần tự qua bossEndingDialogues
         await playBossEndingDialogues();
-
         document.getElementById('battle-screen').style.display = 'none';
         showStoryScreen('extraending');
         return;
@@ -904,14 +901,40 @@ window.battleAction = async function(action) {
 
     await startDodgePhase(bossPhaseIndex === 2 ? 8 : (bossPhaseIndex === 1 ? 5 : 3), dodgeDur, chosenPattern);
 };
+function typeDialogAutoAdvance(text, holdMs = 1500) {
+    return new Promise((resolve) => {
+        const dialogueBox = document.getElementById('dialogue-box');
+        const dialogEl = document.getElementById('dialog-text');
+
+        if (!dialogEl || !dialogueBox) { resolve(); return; }
+
+        dialogueBox.style.display = 'block';
+        dialogEl.innerHTML = '';
+
+        let i = 0;
+
+        function typeNextChar() {
+            if (i < text.length) {
+                dialogEl.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeNextChar, 30);
+            } else {
+                setTimeout(resolve, holdMs);
+            }
+        }
+
+        typeNextChar();
+    });
+}
 
 async function playBossEndingDialogues() {
     for (let i = 0; i < bossEndingDialogues.length; i++) {
         const line = bossEndingDialogues[i];
-        await typeDialog(line.text);
-        const waitMs = line.pause > 0 ? line.pause : 2000;
-        await new Promise(r => setTimeout(r, waitMs));
+        const holdMs = line.pause > 0 ? line.pause : 1500;
+        await typeDialogAutoAdvance(line.text, holdMs);
     }
+    const dialogueBox = document.getElementById('dialogue-box');
+    if (dialogueBox) dialogueBox.style.display = 'none';
 }
 
 const defeatedBosses = new Set();
