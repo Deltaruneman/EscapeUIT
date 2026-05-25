@@ -240,10 +240,10 @@ document.getElementById('pause-screen').addEventListener('click', () => {
     document.getElementById('pause-screen').style.display = 'none';
 });
 
-const actionBtn = document.getElementById('action-btn');
-actionBtn.addEventListener('click', () => {
-    if (isPaused) handleNextStory();
-});
+//const actionBtn = document.getElementById('action-btn');
+//actionBtn.addEventListener('click', () => {
+//    if (isPaused) handleNextStory();
+//});
 
 function updateActionBtn() {
     const storyVisible = document.getElementById('story-screen').style.display === 'flex';
