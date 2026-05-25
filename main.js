@@ -240,26 +240,22 @@ document.getElementById('pause-screen').addEventListener('click', () => {
     document.getElementById('pause-screen').style.display = 'none';
 });
 
-// ===== ACTION BUTTON (J equivalent on mobile) =====
 const actionBtn = document.getElementById('action-btn');
 actionBtn.addEventListener('click', () => {
     if (isPaused) handleNextStory();
 });
 
-// Show/hide action button based on story screen visibility
 function updateActionBtn() {
     const storyVisible = document.getElementById('story-screen').style.display === 'flex';
     actionBtn.style.display = storyVisible ? 'block' : 'none';
 }
 
-// Tap story screen to advance
 document.getElementById('story-screen').addEventListener('click', (e) => {
-    // Don't trigger if tapping a button inside
     if (e.target.tagName === 'BUTTON') return;
     if (isPaused) handleNextStory();
 });
 
-// ===== STORY SCREENS =====
+// STORY SCREENS 
 function showStoryScreen(type) {
     isPaused = true;
     storyMode = type;
@@ -267,8 +263,6 @@ function showStoryScreen(type) {
     const img    = document.getElementById('story-img');
     const text   = document.getElementById('story-text');
     const footer = document.getElementById('story-footer');
-
-    // Đảm bảo story screen luôn nằm trên battle screen
     screen.style.zIndex = '300';
 
     let data;
@@ -463,7 +457,7 @@ function triggerJumpscare() {
 }
 
 // ===== UPDATE =====
-function update() {
+function update(timeScale = 1) {
     if (!gameRunning || isPaused) return;
 
     let nx = player.x, ny = player.y;
@@ -482,13 +476,13 @@ function update() {
 
     // Joystick analog movement
     if (joystickActive) {
-        nx += joystickDelta.x * player.speed;
-        ny += joystickDelta.y * player.speed;
+        nx += joystickDelta.x * player.speed * timeScale;
+        ny += joystickDelta.y * player.speed * timeScale;
     } else {
-        if (kUp)    ny -= player.speed;
-        if (kDown)  ny += player.speed;
-        if (kLeft)  nx -= player.speed;
-        if (kRight) nx += player.speed;
+        if (kUp)    ny -= player.speed * timeScale;
+        if (kDown)  ny += player.speed * timeScale;
+        if (kLeft)  nx -= player.speed * timeScale;
+        if (kRight) nx += player.speed * timeScale;
     }
 
     const _moving = kUp || kDown || kLeft || kRight || joystickActive;
@@ -538,7 +532,7 @@ function update() {
 
     // Enemy update & collision
     enemies.forEach(enemy => {
-        enemy.update(player, currentRoomX, currentRoomY, keysFound);
+        enemy.update(player, currentRoomX, currentRoomY, keysFound, timeScale);
         if (currentRoomX === enemy.roomX && currentRoomY === enemy.roomY) {
             if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 25) {
                 triggerJumpscare();
@@ -601,8 +595,23 @@ function draw() {
     ctx.fillRect(0, 0, GAME_W, GAME_H);
 }
 
-function loop() { update(); draw(); requestAnimationFrame(loop); }
-loop();
+// ===== DELTA TIME GAME LOOP =====
+// Normalize to 60FPS so speed is consistent across all devices/refresh rates
+let lastTime = 0;
+const TARGET_FPS = 60;
+const TARGET_FRAME_MS = 1000 / TARGET_FPS;
+
+function loop(timestamp) {
+    const rawDelta = timestamp - lastTime;
+    lastTime = timestamp;
+    // Clamp delta to avoid huge jumps (e.g. tab switching, phone sleep)
+    const delta = Math.min(rawDelta, 100);
+    const timeScale = delta / TARGET_FRAME_MS;
+    update(timeScale);
+    draw();
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
 
 // ===== MEMORY BOOK =====
 window.onload = () => { enemies.forEach(enemy => enemy.savePosition()); };
@@ -806,9 +815,15 @@ function animateHP() {
     if (isAnimating) hpAnimId = requestAnimationFrame(animateHP);
 }
 
-function dodgeLoop() {
+function dodgeLoop(timestamp) {
     if (battlePhase !== 'dodge') return;
     if (!dodgeActive) return;
+
+    // Delta time for dodge loop
+    if (!dodgeLoop._lastTime) dodgeLoop._lastTime = timestamp;
+    const rawDelta = timestamp - dodgeLoop._lastTime;
+    dodgeLoop._lastTime = timestamp;
+    const dScale = Math.min(rawDelta, 100) / TARGET_FRAME_MS;
 
     const bctx = getBattleCanvas();
     bctx.clearRect(0, 0, BATTLE_W, BATTLE_H);
@@ -825,15 +840,15 @@ function dodgeLoop() {
 
     // Use getDodgeInput for both keyboard & touch
     const di = getDodgeInput();
-    if (di.left)  soul.x -= soul.speed;
-    if (di.right) soul.x += soul.speed;
-    if (di.up)    soul.y -= soul.speed;
-    if (di.down)  soul.y += soul.speed;
+    if (di.left)  soul.x -= soul.speed * dScale;
+    if (di.right) soul.x += soul.speed * dScale;
+    if (di.up)    soul.y -= soul.speed * dScale;
+    if (di.down)  soul.y += soul.speed * dScale;
 
     // Analog dodge from joystick
     if (dodgeJoyActive) {
-        soul.x += dodgeJoyDelta.x * soul.speed;
-        soul.y += dodgeJoyDelta.y * soul.speed;
+        soul.x += dodgeJoyDelta.x * soul.speed * dScale;
+        soul.y += dodgeJoyDelta.y * soul.speed * dScale;
     }
 
     soul.x = Math.max(DODGE_BOX.x + soul.size, Math.min(DODGE_BOX.x + DODGE_BOX.w - soul.size, soul.x));
@@ -841,7 +856,7 @@ function dodgeLoop() {
 
     let hitThisFrame = false;
     bullets = bullets.filter(b => {
-        b.x += b.vx; b.y += b.vy;
+        b.x += b.vx * dScale; b.y += b.vy * dScale;
         if (b.x < DODGE_BOX.x-20 || b.x > DODGE_BOX.x+DODGE_BOX.w+20 ||
             b.y < DODGE_BOX.y-20 || b.y > DODGE_BOX.y+DODGE_BOX.h+20) return false;
 
@@ -871,9 +886,10 @@ function dodgeLoop() {
     bctx.fillRect(soul.x - soul.size/2, soul.y - soul.size/2, soul.size, soul.size);
     bctx.restore();
 
-    dodgeTimer -= 1/60;
+    dodgeTimer -= (1/60) * dScale;
     if (dodgeTimer <= 0 || battleHP <= 0) {
         dodgeActive = false;
+        dodgeLoop._lastTime = 0;
         battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
         bullets = [];
         // Hide dodge joystick
