@@ -135,13 +135,13 @@ class BaseEnemy {
         }
     }
 
-    wanderMove(map) {
+    wanderMove(map, timeScale = 1) {
         if (!this.wanderTargetX || Math.hypot(this.wanderTargetX - this.x, this.wanderTargetY - this.y) < 15) {
             this.pickRandomWanderTarget(map);
         }
-        this.chaseMove(this.wanderTargetX, this.wanderTargetY, map);
+        this.chaseMove(this.wanderTargetX, this.wanderTargetY, map, timeScale);
     }
-    chaseMove(targetX, targetY, map) {
+    chaseMove(targetX, targetY, map, timeScale = 1) {
         let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
         let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
         let tc = Math.floor(targetX / TILE_SIZE);
@@ -160,7 +160,7 @@ class BaseEnemy {
             let dx = nextX - this.x, dy = nextY - this.y;
             let dist = Math.hypot(dx, dy);
             if (dist > 0) {
-                let moveDist = Math.min(this.currentSpeed, dist);
+                let moveDist = Math.min(this.currentSpeed * timeScale, dist);
                 this.x += (dx / dist) * moveDist;
                 this.y += (dy / dist) * moveDist;
             }
@@ -169,7 +169,7 @@ class BaseEnemy {
                 let dx = targetX - this.x, dy = targetY - this.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist > 0) {
-                    let moveDist = Math.min(this.currentSpeed, dist);
+                    let moveDist = Math.min(this.currentSpeed * timeScale, dist);
                     this.x += (dx / dist) * moveDist;
                     this.y += (dy / dist) * moveDist;
                 }
@@ -220,7 +220,7 @@ class RedEnemy extends BaseEnemy {
         this.predictionStrength = 0.35;
     }
 
-    update(player, currentRoomX, currentRoomY, keysFound) {
+    update(player, currentRoomX, currentRoomY, keysFound, timeScale = 1) {
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
         const sameRoom = (this.roomX === currentRoomX && this.roomY === currentRoomY);
         this.isRaging = sameRoom && dist < 120;
@@ -230,7 +230,7 @@ class RedEnemy extends BaseEnemy {
         const map = getMap(this.roomX, this.roomY);
 
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
-            this.wanderMove(map);
+            this.wanderMove(map, timeScale);
             this.handleRoomTransition();
             return;
         }
@@ -265,11 +265,11 @@ class RedEnemy extends BaseEnemy {
             }
         }
 
-        this.chaseMoveSmooth(targetX, targetY, map);
+        this.chaseMoveSmooth(targetX, targetY, map, timeScale);
         this.handleRoomTransition();
     }
 
-    chaseMoveSmooth(targetX, targetY, map) {
+    chaseMoveSmooth(targetX, targetY, map, timeScale = 1) {
         let ec = Math.floor((this.x + this.size/2) / TILE_SIZE);
         let er = Math.floor((this.y + this.size/2) / TILE_SIZE);
         let tc = Math.max(0, Math.min(COLS-1, Math.floor(targetX / TILE_SIZE)));
@@ -289,14 +289,14 @@ class RedEnemy extends BaseEnemy {
 
         let d = Math.hypot(dx, dy);
         if (d > 0) {
-            this.vx += (dx / d) * this.currentSpeed * this.acceleration;
-            this.vy += (dy / d) * this.currentSpeed * this.acceleration;
+            this.vx += (dx / d) * this.currentSpeed * this.acceleration * timeScale;
+            this.vy += (dy / d) * this.currentSpeed * this.acceleration * timeScale;
         }
 
         let speed = Math.hypot(this.vx, this.vy);
-        if (speed > this.currentSpeed) {
-            this.vx = (this.vx / speed) * this.currentSpeed;
-            this.vy = (this.vy / speed) * this.currentSpeed;
+        if (speed > this.currentSpeed * timeScale) {
+            this.vx = (this.vx / speed) * this.currentSpeed * timeScale;
+            this.vy = (this.vy / speed) * this.currentSpeed * timeScale;
         }
 
         this.x += this.vx;
@@ -330,10 +330,10 @@ class GreenEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "green");
     }
-    update(player, currentRoomX, currentRoomY, keysFound) {
+    update(player, currentRoomX, currentRoomY, keysFound, timeScale = 1) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.1); 
         const map = getMap(this.roomX, this.roomY);
-        this.wanderMove(map);
+        this.wanderMove(map, timeScale);
         this.handleRoomTransition();
     }
 }
@@ -342,13 +342,13 @@ class PinkEnemy extends BaseEnemy {
     constructor(startX, startY, baseSpeed) {
         super(startX, startY, baseSpeed, "pink");
     }
-    update(player, currentRoomX, currentRoomY, keysFound) {
+    update(player, currentRoomX, currentRoomY, keysFound, timeScale = 1) {
         this.currentSpeed = this.baseSpeed + (keysFound * 0.2);
         const map = getMap(this.roomX, this.roomY);
         let isChasing = false;
         const detectRadius = 250; 
         if (isInSafeZone(player.x, player.y, currentRoomX, currentRoomY)) {
-            this.wanderMove(map);
+            this.wanderMove(map, timeScale);
             this.handleRoomTransition();
             return;
         }
@@ -374,9 +374,9 @@ class PinkEnemy extends BaseEnemy {
         }
 
         if (isChasing) {
-            this.chaseMove(player.x, player.y, map);
+            this.chaseMove(player.x, player.y, map, timeScale);
         } else {
-            this.wanderMove(map);
+            this.wanderMove(map, timeScale);
         }
         this.handleRoomTransition();
     }
