@@ -1,62 +1,174 @@
-body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
-canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #222; }
+/* ===== BASE ===== */
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+body { margin: 0; background: #000; color: white; overflow: hidden; font-family: 'Courier New', Courier, monospace; touch-action: none; }
+canvas { display: block; margin: 0 auto; background: #000; }
 
-#ui { position: fixed; top: 10px; left: 20px; z-index: 50; font-size: 1.2rem; font-weight: bold; text-shadow: 2px 2px 4px #000; }
+/* ===== UI BAR ===== */
+#ui { 
+    position: fixed; top: 10px; left: 20px; z-index: 50; 
+    font-size: 1rem; font-weight: bold; text-shadow: 2px 2px 4px #000; 
+    background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 4px;
+}
 
+/* ===== OVERLAYS ===== */
 .full-overlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: black; z-index: 200; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    background: black; z-index: 200; flex-direction: column; 
+    justify-content: center; align-items: center; text-align: center;
+    padding: 20px; box-sizing: border-box;
 }
-.full-overlay img { max-width: 80%; max-height: 60vh; border: 2px solid #333; }
-.full-overlay .text-content { font-size: 1.8rem; margin: 30px 0; color: #fff; max-width: 80%; }
-.hint { color: #666; font-size: 1.2rem; margin-top: 10px; }
+.full-overlay img { max-width: 90%; max-height: 45vh; border: 2px solid #333; object-fit: contain; }
+.full-overlay .text-content { font-size: 1.3rem; margin: 20px 0; color: #fff; max-width: 90%; line-height: 1.6; }
+.hint { color: #666; font-size: 1rem; margin-top: 10px; }
 
+/* ===== START SCREEN ===== */
 #start-screen { display: flex; z-index: 300; background: rgba(0,0,0,0.95); }
-#start-btn, .retry-btn { padding: 15px 30px; font-size: 1.5rem; background: #440000; color: white; border: 2px solid red; cursor: pointer; }
-#start-btn:hover, .retry-btn:hover { background: #ff0000; }
+#start-screen h1 { font-size: clamp(2rem, 8vw, 4rem); }
+#start-btn, .retry-btn { 
+    padding: 18px 36px; font-size: 1.4rem; 
+    background: #440000; color: white; border: 2px solid red; cursor: pointer;
+    border-radius: 4px; font-family: 'Courier New', Courier, monospace;
+    min-width: 200px; margin-top: 10px;
+    -webkit-tap-highlight-color: transparent;
+}
+#start-btn:hover, .retry-btn:hover, #start-btn:active, .retry-btn:active { background: #ff0000; }
 
+/* ===== STORY SCREEN ===== */
+#story-screen { cursor: pointer; }
+#story-screen .hint { font-size: 1rem; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 20px; }
+
+/* ===== JUMPSCARE ===== */
 #jumpscare-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 500; }
 #jumpscare-img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ===== JOYSTICK (di chuyển) ===== */
 #joystick-container {
     position: fixed;
-    bottom: 40px;
-    left: 40px;
-    width: 120px;
-    height: 120px;
+    bottom: 30px;
+    left: 30px;
+    width: 130px;
+    height: 130px;
     z-index: 100;
-    display: none; 
+    display: none;
     touch-action: none;
+    user-select: none;
 }
-
 #joystick-base {
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.25);
     border-radius: 50%;
 }
-
 #joystick-stick {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 0, 0, 0.5);
+    width: 54px;
+    height: 54px;
+    background: rgba(255, 60, 60, 0.6);
+    border: 2px solid rgba(255,100,100,0.8);
     border-radius: 50%;
-    top: 35px;
-    left: 35px;
-    transition: transform 0.1s ease-out;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: none;
+    pointer-events: none;
 }
+
+/* ===== DODGE JOYSTICK ===== */
+#dodge-joystick-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 120px;
+    height: 120px;
+    z-index: 200;
+    touch-action: none;
+    user-select: none;
+}
+#dodge-joystick-base {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 120, 255, 0.12);
+    border: 2px solid rgba(0, 120, 255, 0.4);
+    border-radius: 50%;
+}
+#dodge-joystick-stick {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 120, 255, 0.55);
+    border: 2px solid rgba(100, 180, 255, 0.9);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+#dodge-label {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #aaa;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: nowrap;
+}
+
+/* ===== PAUSE BUTTON ===== */
+#pause-btn {
+    position: fixed;
+    top: 10px;
+    right: 65px;
+    z-index: 400;
+    width: 42px;
+    height: 42px;
+    background: #1a1a1a;
+    color: #fff;
+    border: 2px solid #555;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== ACTION BUTTON (tiếp tục / J trên mobile) ===== */
+#action-btn {
+    position: fixed;
+    bottom: 40px;
+    right: 30px;
+    z-index: 250;
+    padding: 16px 28px;
+    background: rgba(60, 60, 60, 0.9);
+    color: white;
+    border: 2px solid #aaa;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+#action-btn:active { background: rgba(120,120,120,0.9); }
+
+/* ===== BATTLE SCREEN ===== */
 #battle-screen {
     background: black;
     display: none;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px;
+    padding: 10px;
     box-sizing: border-box;
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     z-index: 100;
+    overflow: hidden;
 }
 
 .battle-scene {
@@ -67,47 +179,40 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     animation: float 3s ease-in-out infinite;
     position: relative;
     z-index: 5;
+    max-height: 35vh;
 }
-
-.battle-scene img {
-    height: 250px;
- 
-}
+.battle-scene img { height: clamp(120px, 25vh, 250px); }
 
 @keyframes float {
     0% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    50% { transform: translateY(-15px); }
     100% { transform: translateY(0px); }
 }
 
 .battle-ui-container {
-    width: 80%;
+    width: 95%;
     max-width: 800px;
     margin: 0 auto;
-    border: 4px solid white;
+    border: 3px solid white;
     background: #000;
-    padding: 15px;
+    padding: 10px;
     box-sizing: border-box;
     position: relative;
     z-index: 5;
 }
 
-.battle-dialog {
-    font-size: 1.5rem;
-    color: white;
-    margin-bottom: 15px;
-    position: relative;
-    min-height: 0;
-}
+.battle-dialog { font-size: 1.1rem; color: white; margin-bottom: 10px; position: relative; }
 
 .battle-stats {
     display: flex;
     justify-content: space-between;
-    font-size: 1.2rem;
+    font-size: 0.95rem;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     border-bottom: 2px solid white;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .battle-menu {
@@ -115,29 +220,60 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     justify-content: space-between;
     position: relative;
     z-index: 5;
+    gap: 4px;
 }
-
 .battle-menu button {
     background: black;
     color: white;
     border: 2px solid white;
-    padding: 10px 20px;
-    font-size: 1.2rem;
+    padding: 10px 4px;
+    font-size: clamp(0.75rem, 3vw, 1.1rem);
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     cursor: pointer;
     flex: 1;
-    margin: 0 5px;
-    transition: 0.2s;
+    transition: 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 48px;
 }
+.battle-menu button:hover, .battle-menu button:active { background: white; color: black; }
 
-.battle-menu button:hover {
-    background: white;
-    color: black;
+/* ===== DIALOGUE BOX ===== */
+#dialogue-box {
+    position: relative;
+    width: 100%;
+    min-height: 60px;
+    background: black;
+    border: 3px solid white;
+    color: white;
+    font-family: Courier New;
+    font-size: clamp(14px, 3.5vw, 20px);
+    padding: 12px;
+    box-sizing: border-box;
+    z-index: 15;
+    display: none;
 }
-@media (pointer: coarse) {
-    #joystick-container { display: block; }
+#dialog-text { white-space: pre-wrap; }
+
+#skip-dialog-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(80,80,80,0.8);
+    color: #ccc;
+    border: 1px solid #555;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
+#skip-dialog-btn:active { background: rgba(140,140,140,0.8); }
+
+/* ===== HELP BUTTON & OVERLAY ===== */
 #help-btn {
     position: fixed;
     top: 10px;
@@ -160,12 +296,9 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     box-shadow: 0 0 8px rgba(255,68,68,0.4);
     line-height: 1;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
-#help-btn:hover {
-    background: #ff4444;
-    color: #fff;
-    box-shadow: 0 0 16px rgba(255,68,68,0.8);
-}
+#help-btn:hover, #help-btn:active { background: #ff4444; color: #fff; box-shadow: 0 0 16px rgba(255,68,68,0.8); }
 
 #help-overlay {
     display: none;
@@ -176,27 +309,24 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     z-index: 500;
     justify-content: center;
     align-items: center;
+    overflow-y: auto;
 }
-#help-overlay.active {
-    display: flex;
-}
+#help-overlay.active { display: flex; }
 #help-overlay img {
-    max-width: 85%;
+    max-width: 92%;
     max-height: 85vh;
     border: 2px solid #ff4444;
     box-shadow: 0 0 30px rgba(255,68,68,0.5);
     object-fit: contain;
 }
 #help-close-btn {
-    position: absolute;
-    top: 20px;
-    right: 25px;
+    position: fixed;
+    top: 20px; right: 25px;
     background: #1a1a1a;
     color: #fff;
     border: 2px solid #ff4444;
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 48px; height: 48px;
     font-size: 1.4rem;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
@@ -204,59 +334,29 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 8px rgba(255,68,68,0.4);
     z-index: 501;
     padding: 0;
-    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
-#help-close-btn:hover {
-    background: #ff4444;
-    box-shadow: 0 0 16px rgba(255,68,68,0.8);
-}
-#dialogue-box{
-    position: relative;
-    left: unset;
-    transform: unset;
-    width: 100%;
-    min-height: 80px;
-    background: black;
-    border: 4px solid white;
+#help-close-btn:hover, #help-close-btn:active { background: #ff4444; }
+
+/* ===== RESPAWN ===== */
+#respawn-container { z-index: 300; }
+#respawn-btn {
+    padding: 20px 50px;
+    font-size: 1.5rem;
+    background: #002200;
     color: white;
-    font-family: Courier New;
-    font-size: 24px;
-    padding: 16px;
-    box-sizing: border-box;
-    z-index: 15;
-    display: none;
-}
-
-#dialog-text{
-    white-space:pre-wrap;
-}
-
-#memory-book-btn {
-    background: transparent;
-    border: none;
+    border: 2px solid lime;
     cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s, filter 0.2s;
-    filter: drop-shadow(0 0 8px rgba(0, 85, 204, 0.6));
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 4px;
+    min-width: 200px;
+    -webkit-tap-highlight-color: transparent;
 }
-#memory-book-btn img {
-    width: 64px;
-    height: 64px;
-    object-fit: contain;
-}
-#memory-book-btn:hover {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 16px rgba(0, 140, 255, 0.9));
-}
+#respawn-btn:active { background: #004400; }
 
-/* ===== MEMORY BOOK OVERLAY ===== */
+/* ===== MEMORY BOOK ===== */
 #memory-book-overlay {
     display: none;
     position: fixed;
@@ -266,37 +366,36 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     z-index: 600;
     justify-content: center;
     align-items: flex-start;
-    padding: 40px 20px;
+    padding: 60px 16px 20px;
     box-sizing: border-box;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
-#memory-book-overlay.active {
-    display: flex;
-}
+#memory-book-overlay.active { display: flex; }
 #memory-book-content {
     width: 100%;
     max-width: 720px;
     background: #0a0a1a;
     border: 2px solid #0055cc;
     box-shadow: 0 0 40px rgba(0, 85, 204, 0.4);
-    padding: 30px;
+    padding: 24px 16px;
     box-sizing: border-box;
     border-radius: 4px;
 }
 #memory-book-title {
     color: #4da6ff;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     text-align: center;
-    margin: 0 0 24px 0;
+    margin: 0 0 20px 0;
     border-bottom: 2px solid #003380;
-    padding-bottom: 14px;
+    padding-bottom: 12px;
     font-family: 'Courier New', Courier, monospace;
     letter-spacing: 2px;
 }
 .memory-entry {
     border-left: 3px solid #0055cc;
-    padding: 10px 16px;
-    margin-bottom: 18px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
     background: rgba(0, 85, 204, 0.07);
     border-radius: 0 4px 4px 0;
 }
@@ -304,26 +403,20 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     display: block;
     color: #4da6ff;
     font-weight: bold;
-    font-size: 1.05rem;
+    font-size: 1rem;
     margin-bottom: 5px;
     font-family: 'Courier New', Courier, monospace;
 }
-.memory-entry p {
-    margin: 0;
-    color: #ccdeff;
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
+.memory-entry p { margin: 0; color: #ccdeff; font-size: 0.9rem; line-height: 1.6; }
+
 #memory-book-close {
     position: fixed;
-    top: 16px;
-    right: 22px;
+    top: 16px; right: 22px;
     background: #0a0a1a;
     color: #fff;
     border: 2px solid #0055cc;
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 48px; height: 48px;
     font-size: 1.4rem;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
@@ -331,20 +424,16 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 8px rgba(0, 85, 204, 0.4);
     z-index: 601;
     padding: 0;
-    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
-#memory-book-close:hover {
-    background: #0055cc;
-    box-shadow: 0 0 16px rgba(0, 140, 255, 0.8);
-}
+#memory-book-close:hover, #memory-book-close:active { background: #0055cc; }
+
+/* ===== BOSS INTRO ===== */
 #boss-intro-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: calc(100% - 220px);
     display: flex;
@@ -356,46 +445,48 @@ canvas { display: block; margin: 0 auto; background: #000; border: 2px solid #22
     pointer-events: none;
     transition: opacity 0.4s ease;
 }
-
-#boss-intro-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-}
-
+#boss-intro-overlay.active { opacity: 1; pointer-events: all; }
 #boss-intro-gif {
-    height: 250px;
+    height: clamp(140px, 20vh, 250px);
     filter: drop-shadow(0 0 30px red) drop-shadow(0 0 60px darkred);
     animation: bossIntroZoom 0.6s ease-out forwards;
 }
-
 @keyframes bossIntroZoom {
     0%   { transform: scale(0.2) translateY(80px); opacity: 0; filter: drop-shadow(0 0 0px red) brightness(5); }
     60%  { transform: scale(1.15) translateY(-10px); opacity: 1; filter: drop-shadow(0 0 40px red) brightness(2); }
     100% { transform: scale(1) translateY(0px); opacity: 1; filter: drop-shadow(0 0 30px red); }
 }
-
-#boss-intro-flash {
-    position: absolute;
-    inset: 0;
-    background: white;
-    opacity: 0;
-    pointer-events: none;
-}
-
-#boss-intro-flash.flash {
-    animation: bossFlash 0.5s ease-out forwards;
-}
-
-@keyframes bossFlash {
-    0%   { opacity: 0.9; }
-    100% { opacity: 0; }
-}
-
-/* Boss screen rung khi intro */
+#boss-intro-flash { position: absolute; inset: 0; background: white; opacity: 0; pointer-events: none; }
+#boss-intro-flash.flash { animation: bossFlash 0.5s ease-out forwards; }
+@keyframes bossFlash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
 @keyframes bossShakeIntro {
     0%, 100% { transform: translateX(0); }
     20%  { transform: translateX(-8px); }
     40%  { transform: translateX(8px); }
     60%  { transform: translateX(-5px); }
     80%  { transform: translateX(5px); }
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 480px) {
+    #ui { font-size: 0.78rem; top: 6px; left: 8px; }
+    .full-overlay .text-content { font-size: 1.1rem; }
+    .battle-menu button { font-size: 0.7rem; padding: 10px 2px; }
+    #start-screen h1 { font-size: 2.2rem; }
+}
+
+/* Touch device: show joystick + pause btn */
+@media (pointer: coarse) {
+    #joystick-container { display: block; }
+    #pause-btn { display: flex; }
+}
+
+/* Landscape on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .battle-scene { max-height: 25vh; }
+    .battle-scene img { height: clamp(80px, 18vh, 140px); }
+    .full-overlay .text-content { font-size: 1rem; margin: 10px 0; }
+    .full-overlay img { max-height: 30vh; }
+    #joystick-container { width: 100px; height: 100px; bottom: 20px; left: 20px; }
+    #dodge-joystick-container { width: 100px; height: 100px; bottom: 10px; right: 10px; }
 }

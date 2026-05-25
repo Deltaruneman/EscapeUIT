@@ -2,6 +2,9 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Escape UIT</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -9,7 +12,7 @@
 
 <div id="start-screen" class="full-overlay">
     <h1 style="font-size: 4rem; color: red;">ESCAPE UIT</h1>
-    <img id="story-img" src="boss.png" >
+    <img id="story-img-start" src="boss.png">
     <p>Chúc bạn có 4 năm ở đây thật vui vẻ :)</p>
     <button id="start-btn">CHƠI GAME</button>
 </div>
@@ -17,8 +20,9 @@
 <div id="story-screen" class="full-overlay">
     <img id="story-img" src="" alt="Story">
     <div id="story-text" class="text-content"></div>
-    <div id="story-footer" class="hint">(Bấm phím [J] để tiếp tục)</div>
+    <div id="story-footer" class="hint">(Bấm phím [J] hoặc chạm vào màn hình để tiếp tục)</div>
 </div>
+
 <div id="memory-book-overlay">
     <button id="memory-book-close" onclick="closeMemoryBook()">✕</button>
     <div id="memory-book-content">
@@ -35,13 +39,21 @@
 
 <div id="pause-screen" class="full-overlay" style="background: rgba(0,0,0,0.7); display: none;">
     <h1 style="color: white;">ĐÃ TẠM DỪNG</h1>
-    <p style="color: #ccc;">Nhấn [ESC] để tiếp tục</p>
+    <p style="color: #ccc;">Nhấn [ESC] hoặc nút ❚❚ để tiếp tục</p>
 </div>
 
+<!-- Joystick di chuyển -->
 <div id="joystick-container">
     <div id="joystick-base"></div>
     <div id="joystick-stick"></div>
 </div>
+
+<!-- Nút pause mobile -->
+<button id="pause-btn" onclick="togglePause()">❚❚</button>
+
+<!-- Nút tương tác (J) trên mobile -->
+<button id="action-btn" style="display:none;">✓ Tiếp tục</button>
+
 <div id="battle-screen" class="full-overlay">
 
     <div id="boss-intro-overlay">
@@ -55,10 +67,11 @@
     
     <div class="battle-ui-container">
         <div class="battle-dialog" id="battle-dialog">
-
             <div id="dialogue-box">
-    <div id="dialog-text"></div>
-</div>
+                <div id="dialog-text"></div>
+                <!-- Nút skip dialog trên mobile -->
+                <button id="skip-dialog-btn" onclick="skipCurrentDialog()" style="display:none;">⏩ Bỏ qua</button>
+            </div>
         </div>
         
         <div class="battle-stats">
@@ -73,8 +86,16 @@
             <button onclick="battleAction('ESCAPE')">🏃 ESCAPE</button>
         </div>
     </div>
+
+    <!-- Dodge joystick (chỉ hiện trong dodge phase) -->
+    <div id="dodge-joystick-container" style="display:none;">
+        <div id="dodge-joystick-base"></div>
+        <div id="dodge-joystick-stick"></div>
+        <div id="dodge-label">DODGE!</div>
+    </div>
     
 </div>
+
 <div id="ui">
     Deaths: <span id="death-count" style="color:red;">0</span> / 5 &nbsp;&nbsp;|&nbsp;&nbsp; 
     Keys: <span id="key-count" style="color:yellow;">0</span> / 4 &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -83,22 +104,21 @@
 
 <button id="help-btn" onclick="toggleHelp()">?</button>
 
-
 <div id="help-overlay">
     <button id="help-close-btn" onclick="toggleHelp()">✕</button>
     <img id="help-img" src="images/help.png" alt="Hướng dẫn chơi">
 </div>
+
 <div id="respawn-container" class="full-overlay" style="display: none;">
     <button id="respawn-btn">Respawn</button>
 </div>
+
 <div id="battle-menu-container" style="display: none;">
     <button>Fight</button>
     <button>Act</button>
     <button>Item</button>
     <button>Mercy</button>
 </div>
-
-
 
 <script src="data.js"></script>
 <script src="enemy.js"></script>
