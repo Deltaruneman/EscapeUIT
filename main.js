@@ -268,6 +268,9 @@ function showStoryScreen(type) {
     const text   = document.getElementById('story-text');
     const footer = document.getElementById('story-footer');
 
+    // Đảm bảo story screen luôn nằm trên battle screen
+    screen.style.zIndex = '300';
+
     let data;
     if (type === "intro") data = storyScenes[currentStoryIdx];
     else if (type === "key") data = keyCollectScenes[keysFound - 1];
@@ -444,7 +447,7 @@ function triggerJumpscare() {
     deathCount++;
     document.getElementById('death-count').innerText = deathCount;
     gameRunning = false;
-    document.getElementById('jumpscare-overlay').style.display = 'block';
+    document.getElementById('jumpscare-overlay').style.setProperty('display', 'flex', 'important');
     document.getElementById('jumpscare-img').src = "nomon.gif";
 
     setTimeout(() => {
@@ -887,12 +890,20 @@ async function endDodgePhase() {
     dodgeActive = false;
     bullets = [];
     if (battleCtx) battleCtx.clearRect(0, 0, BATTLE_W, BATTLE_H);
+    // Ẩn dodge joystick
+    dodgeJoyContainer.style.display = 'none';
 
     if (battleHP <= 0) {
+        showBattleMenu(false);
         await typeDialog("* Cơ thể bạn gục xuống...");
-        document.getElementById('battle-screen').style.display = 'none';
+        document.getElementById('battle-screen').style.setProperty('display', 'none', 'important');
         showStoryScreen('ending_bad');
         return;
+    }
+    // Hiện lại battle-screen nếu bị ẩn
+    const bs = document.getElementById('battle-screen');
+    if (bs.style.display === 'none' || bs.style.display === '') {
+        bs.style.setProperty('display', 'flex', 'important');
     }
     showBattleMenu(true);
     await typeDialog("* Quái vật đang lườm bạn...");
@@ -900,7 +911,10 @@ async function endDodgePhase() {
 }
 
 function showBattleMenu(show) {
-    document.querySelector('.battle-menu').style.visibility = show ? 'visible' : 'hidden';
+    const menu = document.querySelector('.battle-menu');
+    if (!menu) return;
+    menu.style.visibility = show ? 'visible' : 'hidden';
+    menu.style.pointerEvents = show ? 'auto' : 'none';
 }
 
 async function startDodgePhase(damage, duration, patterns) {
@@ -988,7 +1002,10 @@ window.battleAction = async function(action) {
         if (battleCanvas) { battleCanvas.remove(); battleCanvas = null; }
         showBattleMenu(false);
         await playBossEndingDialogues();
-        document.getElementById('battle-screen').style.display = 'none';
+        // Ẩn battle screen TRƯỚC khi hiện story screen
+        document.getElementById('battle-screen').style.setProperty('display', 'none', 'important');
+        // Đảm bảo dodge joystick ẩn
+        dodgeJoyContainer.style.display = 'none';
         showStoryScreen('extraending');
         return;
     }
