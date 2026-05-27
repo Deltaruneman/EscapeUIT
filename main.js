@@ -1250,16 +1250,16 @@ window.wsUseSkill = async function(skillId) {
     const skill = WS.SKILLS.find(s => s.id === skillId);
     if (!skill) { WS.playerTurn = true; return; }
 
-    if (skillId === 'STRIKE') {
+    if (skillId === 'Attack') {
         const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 1.5, 0.5);
         WS.bossHP = Math.max(0, WS.bossHP - dmg);
-        await wsDialog(`⚔️ STRIKE — Bạn tấn công! Gây ${dmg} sát thương!`, 1500);
+        await wsDialog(`⚔️ Attack — Bạn tấn công! Gây ${dmg} sát thương!`, 1500);
         wsFlashBoss();
-    } else if (skillId === 'HEAVY') {
+    } else if (skillId === 'Heavy') {
         const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 2.0);
         WS.bossHP = Math.max(0, WS.bossHP - dmg);
         WS.bossStatus.push({ type: 'DEBUFF_DEF', turns: 1 });
-        await wsDialog(`💥 HEAVY — Cú đánh nghiền nát! ${dmg} sát thương + -DEF boss 1 turn!`, 1600);
+        await wsDialog(`💥 Heavy — Cú đánh nghiền nát! ${dmg} sát thương + -DEF boss 1 turn!`, 1600);
         wsFlashBoss();
     } else if (skillId === 'FORESEEN') {
         WS.foreseen = true;
@@ -1294,7 +1294,7 @@ function wsFlashBoss() {
     const img = document.getElementById('ws-boss-img');
     if (!img) return;
     img.style.filter = 'hue-rotate(280deg) brightness(5)';
-    setTimeout(() => img.style.filter = 'hue-rotate(280deg) drop-shadow(0 0 20px #ff00ff) brightness(1.5)', 250);
+    setTimeout(() => img.style.filter = 'hue-rotate(280deg) drop-shadow(0 0 20px #ffffff) brightness(1.5)', 250);
 }
 
 async function wsBossAttackPhase() {
@@ -1492,9 +1492,9 @@ async function startSecretBoss() {
 
     // Intro dialogues
     await wsDialog('* ...', 1400);
-    await wsDialog('* Đợi đã.', 1000);
-    await wsDialog('* Ngươi nghĩ câu chuyện kết thúc ở đây?', 2000);
-    await wsDialog('* Ta là phần còn lại. Phần ngươi chưa bao giờ đối mặt.', 2200);
+    await wsDialog('* Oi.', 1000);
+    await wsDialog('* Chúc mừng ngươi đã tìm được đến đây.', 2000);
+    await wsDialog('* Ta sẽ cho ngươi xem 1 cuộc chiến thật sự sẽ như thế nào.', 2200);
     await wsDialog('* ???: Hãy chiến đấu thật sự. Theo luật của ta.', 2000);
     await wsDialog(`📋 Luật chiến đấu:\n• Attack Phase: Chọn kỹ năng tấn công\n• Dodge Phase: Di chuyển trên lưới để né đòn\n• Dùng ← → ↑ ↓ hoặc chạm vào ô để né`, 3500);
 
