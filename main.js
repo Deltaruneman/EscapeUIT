@@ -986,166 +986,516 @@ function showBossWarning(message, duration = 1500) {
     });
 }
 
-// ===== SECRET BOSS =====
-let secretBossActive = false;
-let secretBossHP = 500;
-let secretPlayerHP = 100;
-let secretBossTurn = true;
-let secretBossPhase = 0; // 0=normal,1=enraged
+// ===== WHITE SOULS — SECRET BOSS =====
+// Grid-based turn system: Attack Phase → Dodge Phase
+// Grid: 6 cols × 2 rows, player on bottom row
 
-const secretBossDialogues = [
-    "* ...",
-    "* Còn ngươi... ngươi đã ở đây rồi.",
-    "* Ta là phần chưa bao giờ kết thúc của UIT.",
-    "* Những đêm thức khuya. Những deadline bỏ lỡ. Những lần muốn bỏ cuộc.",
-    "* Ta là tất cả những điều đó.",
-    "* Và ngươi... không thể xóa bỏ ta."
+const WS = {
+    // Grid config
+    COLS: 6, ROWS: 2,
+    // Stats
+    playerHP: 100, playerMaxHP: 100,
+    playerATK: 28, playerDEF: 8, playerIMM: 30, playerSPD: 10,
+    bossHP: 300,   bossMaxHP: 300,
+    bossATK: 22,   bossDEF: 5,   bossIMM: 10,  bossSPD: 7,
+    // State
+    playerCol: 2, playerRow: 1,   // position on grid (bottom row)
+    active: false,
+    phase: 'none',   // 'intro','attack_player','attack_boss','dodge','result','ending'
+    playerTurn: false,
+    bossPhase: 0,    // 0=normal, 1=enraged (<50% HP)
+    selectedSkill: null,
+    turnCount: 0,
+    // Status effects
+    playerStatus: [],  // {type, turns}
+    bossStatus: [],
+    // Dodge state
+    warningCells: [],  // {col, row} orange warning
+    attackCells:  [],  // {col, row} blue hit
+    dodgeInputLocked: false,
+    dodgeResolved: false,
+    // Skill cooldowns
+    cooldowns: { STRIKE: 0, FORESEEN: 0, HEAL: 0, NULLIFY: 0 },
+    foreseen: false,   // foreseen active this turn?
+    // Canvas
+    canvas: null, ctx: null,
+    animFrame: null,
+    // Skills
+    SKILLS: [
+        { id: 'STRIKE',  label: '⚔️ STRIKE',  desc: 'Gây sát thương ×1.5, xuyên giáp 50%', cd: 0 },
+        { id: 'HEAVY',   label: '💥 HEAVY',   desc: 'Gây sát thương ×2, -10 DEF boss 1 turn', cd: 0 },
+        { id: 'FORESEEN',label: '👁 FORESEEN',desc: 'Nhìn trước pattern boss, +20% né', cd: 2 },
+        { id: 'HEAL',    label: '💚 RECOVER', desc: 'Hồi 25 HP bản thân', cd: 3 },
+        { id: 'NULLIFY', label: '🛡 NULLIFY', desc: 'Triệt tiêu status effect boss', cd: 3 },
+    ],
+};
+
+// Boss move sets (patterns): each cell {col,row} that will be hit
+const WS_BOSS_MOVES = [
+    { name: "SWEEP", desc: "Quét toàn hàng dưới!", warning: [{col:0,row:1},{col:1,row:1},{col:2,row:1},{col:3,row:1},{col:4,row:1},{col:5,row:1}], dmgMult: 1.0, status: null },
+    { name: "CROSS", desc: "Tấn công chéo!", warning: [{col:1,row:0},{col:1,row:1},{col:4,row:0},{col:4,row:1}], dmgMult: 1.2, status: null },
+    { name: "SNIPE", desc: "Bắn thẳng vào bạn!", warning: null, dmgMult: 1.4, status: null }, // targets player col
+    { name: "FREEZE", desc: "Đóng băng tốc độ!", warning: [{col:0,row:0},{col:2,row:0},{col:4,row:0},{col:0,row:1},{col:2,row:1},{col:4,row:1}], dmgMult: 0.7, status: {type:'FREEZE',turns:2} },
+    { name: "POISON", desc: "Nhiễm độc!", warning: [{col:1,row:0},{col:3,row:0},{col:5,row:0},{col:1,row:1},{col:3,row:1},{col:5,row:1}], dmgMult: 0.5, status: {type:'POISON',turns:3} },
+    { name: "RAGE",   desc: "ĐIÊN CUỒNG — TẤT CẢ!", warning: [{col:0,row:0},{col:1,row:0},{col:2,row:0},{col:3,row:0},{col:4,row:0},{col:5,row:0},{col:0,row:1},{col:1,row:1},{col:2,row:1},{col:3,row:1},{col:4,row:1},{col:5,row:1}], dmgMult: 2.0, status: null },
 ];
 
-const secretBossAttackDialogues = [
-    "* CHUỖI BÀI TẬP KHÔNG HỒI KẾT! (-15 HP)",
-    "* ĐỒ ÁN NHÓM TAN RÃ VÀO PHÚT CUỐI! (-12 HP)",
-    "* MÔI TRƯỜNG DEV BỊ HỎNG LÚC NỘP BÀI! (-18 HP)",
-    "* GIT CONFLICT TOÀN BỘ DỰ ÁN! (-10 HP)"
-];
-
-const secretBossEndingDialogues = [
-    "* ...",
-    "* Ngươi... thực sự đã đánh bại ta.",
-    "* Nhưng nhớ lấy điều này...",
-    "* Những khó khăn đó không phải để đánh bại ngươi.",
-    "* Chúng là để ngươi trở nên mạnh mẽ hơn.",
-    "* Giờ hãy thức dậy. Đồ án còn chưa xong.",
-    "* ...Chúc may mắn, sinh viên."
-];
-
-async function typeSecretDialog(text, holdMs = 2000) {
+// Dialog helper for secret boss
+async function wsDialog(text, holdMs = 1800) {
     return new Promise(resolve => {
-        const el = document.getElementById('secret-boss-dialog');
+        const el = document.getElementById('ws-dialog');
         if (!el) { resolve(); return; }
         el.innerText = '';
         let i = 0;
         function next() {
-            if (i < text.length) { el.innerText += text[i]; i++; setTimeout(next, 28); }
+            if (i < text.length) { el.innerText += text[i]; i++; setTimeout(next, 26); }
             else setTimeout(resolve, holdMs);
         }
         next();
     });
 }
 
-function updateSecretBossHPDisplay() {
-    const bEl = document.getElementById('secret-boss-hp');
-    const pEl = document.getElementById('secret-player-hp');
-    if (bEl) bEl.innerText = Math.max(0, secretBossHP);
-    if (pEl) pEl.innerText = Math.max(0, secretPlayerHP);
+function wsUpdateHPBars() {
+    const pb = document.getElementById('ws-player-hp-bar');
+    const bb = document.getElementById('ws-boss-hp-bar');
+    const pn = document.getElementById('ws-player-hp-num');
+    const bn = document.getElementById('ws-boss-hp-num');
+    if (pb) pb.style.width = Math.max(0, (WS.playerHP / WS.playerMaxHP) * 100) + '%';
+    if (bb) bb.style.width = Math.max(0, (WS.bossHP   / WS.bossMaxHP)   * 100) + '%';
+    if (pn) pn.innerText = Math.max(0, Math.ceil(WS.playerHP)) + '/' + WS.playerMaxHP;
+    if (bn) bn.innerText = Math.max(0, Math.ceil(WS.bossHP))   + '/' + WS.bossMaxHP;
+    // status badges
+    const ps = document.getElementById('ws-player-status');
+    const bs = document.getElementById('ws-boss-status');
+    if (ps) ps.innerText = WS.playerStatus.map(s=>s.type+'×'+s.turns).join(' ') || '';
+    if (bs) bs.innerText = WS.bossStatus.map(s=>s.type+'×'+s.turns).join(' ') || '';
 }
 
-async function secretBossAttack() {
-    const dmgAmount = 10 + secretBossPhase * 5 + Math.floor(Math.random() * 8);
-    const msg = secretBossAttackDialogues[Math.floor(Math.random() * secretBossAttackDialogues.length)];
-    const realMsg = msg.replace(/\(-\d+ HP\)/, `(-${dmgAmount} HP)`);
-    secretPlayerHP = Math.max(0, secretPlayerHP - dmgAmount);
-    updateSecretBossHPDisplay();
-
-    // Flash red on player HP
-    const pEl = document.getElementById('secret-player-hp');
-    if (pEl) { pEl.style.color = 'red'; setTimeout(() => pEl.style.color = 'lime', 500); }
-
-    await typeSecretDialog(realMsg, 1200);
-
-    if (secretPlayerHP <= 0) {
-        await typeSecretDialog("* Ngươi... thật sự không thể vượt qua được bóng tối trong lòng mình.", 2000);
-        await typeSecretDialog("* Nhưng không sao. Hãy thử lại.", 2000);
-        document.getElementById('secret-boss-screen').style.display = 'none';
-        showStoryScreen('extraending');
-        return;
-    }
-    secretBossTurn = false;
-    document.getElementById('secret-boss-menu').style.visibility = 'visible';
-}
-
-window.secretBossAction = async function(action) {
-    if (secretBossTurn) return;
-    secretBossTurn = true;
-    document.getElementById('secret-boss-menu').style.visibility = 'hidden';
-
-    if (action === 'FIGHT') {
-        const dmg = 30 + Math.floor(Math.random() * 25);
-        secretBossHP = Math.max(0, secretBossHP - dmg);
-        if (secretBossHP <= 150) secretBossPhase = 1;
-        updateSecretBossHPDisplay();
-        const bImg = document.getElementById('secret-boss-img');
-        if (bImg) { bImg.style.filter = 'hue-rotate(280deg) brightness(5) drop-shadow(0 0 20px white)'; setTimeout(() => bImg.style.filter = 'hue-rotate(280deg) drop-shadow(0 0 30px #ff00ff) brightness(1.5)', 300); }
-        await typeSecretDialog(`* Bạn tập hợp tất cả ký ức đẹp ở UIT và tấn công! ${dmg} sát thương!`, 1400);
-    } else if (action === 'QUESTION') {
-        await typeSecretDialog(secretBossDialogues[Math.floor(Math.random() * secretBossDialogues.length)], 2000);
-    } else if (action === 'ACCEPT') {
-        if (secretBossHP <= 200) {
-            // True ending — chấp nhận bóng tối
-            await typeSecretDialog("* ...Ngươi... chấp nhận ta?", 2000);
-            await typeSecretDialog("* Không ai từng làm vậy trước đây.", 2000);
-            await typeSecretDialog("* ...", 1500);
-            await typeSecretDialog("* Cảm ơn.", 2000);
-            for (const line of secretBossEndingDialogues) {
-                await typeSecretDialog(line, 1800);
-            }
-            document.getElementById('secret-boss-screen').style.display = 'none';
-            // Final true ending
-            const screen = document.getElementById('story-screen');
-            const img = document.getElementById('story-img');
-            const text = document.getElementById('story-text');
-            const footer = document.getElementById('story-footer');
-            img.src = 'bg.png';
-            text.innerText = "TRUE ENDING: Bạn đã hiểu rằng những khó khăn, những đêm thức trắng, những deadline căng thẳng... tất cả đều là một phần của hành trình. UIT không phải là ác mộng — đó là nơi bạn trưởng thành. Chúc mừng tốt nghiệp, thật sự.";
-            footer.innerHTML = `<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;"><button class="retry-btn" style="background:#1a0033;border-color:#ff00ff;" onclick="location.reload()">CHƠI LẠI</button><button id="memory-book-btn" onclick="openMemoryBook()">📖 UIT Gallery</button></div>`;
-            screen.style.display = 'flex';
-            isPaused = true;
-            updateActionBtn();
-            return;
-        } else {
-            await typeSecretDialog("* Chấp nhận ư? Còn sớm quá để nói điều đó. Ta chưa xong đâu.", 2000);
+function wsSetMenu(show, phase) {
+    const atk = document.getElementById('ws-attack-menu');
+    const dodge = document.getElementById('ws-dodge-info');
+    if (!atk || !dodge) return;
+    if (phase === 'attack' && show) {
+        atk.style.display = 'flex';
+        dodge.style.display = 'none';
+        // Render skill buttons
+        const btnArea = document.getElementById('ws-skill-btns');
+        if (btnArea) {
+            btnArea.innerHTML = WS.SKILLS.map(sk => {
+                const onCD = (WS.cooldowns[sk.id] || 0) > 0;
+                return `<button class="ws-skill-btn${onCD?' ws-cd':''}" onclick="wsUseSkill('${sk.id}')" ${onCD?'disabled':''} title="${sk.desc}">
+                    ${sk.label}${onCD?' (CD:'+WS.cooldowns[sk.id]+')':''}
+                </button>`;
+            }).join('');
         }
-    } else if (action === 'RUN') {
-        await typeSecretDialog("* Ngươi không thể chạy trốn khỏi chính mình.", 1800);
-        secretPlayerHP = Math.max(0, secretPlayerHP - 20);
-        updateSecretBossHPDisplay();
+    } else {
+        atk.style.display = 'none';
+        dodge.style.display = show ? 'flex' : 'none';
+    }
+}
+
+// ---- Grid Drawing ----
+function wsGetGridLayout() {
+    const el = document.getElementById('ws-grid-canvas');
+    if (!el) return null;
+    const W = el.width, H = el.height;
+    const cellW = Math.floor(W / WS.COLS);
+    const cellH = Math.floor(H / WS.ROWS);
+    return { W, H, cellW, cellH };
+}
+
+function wsDrawGrid() {
+    const el = document.getElementById('ws-grid-canvas');
+    if (!el) return;
+    const c = el.getContext('2d');
+    const { W, H, cellW, cellH } = wsGetGridLayout();
+    c.clearRect(0, 0, W, H);
+
+    for (let row = 0; row < WS.ROWS; row++) {
+        for (let col = 0; col < WS.COLS; col++) {
+            const x = col * cellW, y = row * cellH;
+            // Base fill
+            c.fillStyle = '#0a0a1a';
+            c.fillRect(x+1, y+1, cellW-2, cellH-2);
+
+            // Warning (orange)
+            const isWarn = WS.warningCells.some(w => w.col === col && w.row === row);
+            // Hit (blue/red)
+            const isHit  = WS.attackCells.some(a => a.col === col && a.row === row);
+
+            if (isHit) {
+                c.fillStyle = 'rgba(255,50,50,0.55)';
+                c.fillRect(x+1, y+1, cellW-2, cellH-2);
+                // pulsing border
+                c.strokeStyle = '#ff3333';
+                c.lineWidth = 3;
+                c.strokeRect(x+2, y+2, cellW-4, cellH-4);
+            } else if (isWarn) {
+                c.fillStyle = 'rgba(255,160,0,0.45)';
+                c.fillRect(x+1, y+1, cellW-2, cellH-2);
+                c.strokeStyle = '#ffa500';
+                c.lineWidth = 2;
+                c.strokeRect(x+2, y+2, cellW-4, cellH-4);
+            }
+
+            // Grid border
+            c.strokeStyle = '#1a1a4a';
+            c.lineWidth = 1;
+            c.strokeRect(x, y, cellW, cellH);
+        }
     }
 
-    if (secretBossHP <= 0) {
-        // Boss bị đánh bại bằng vũ lực
-        await typeSecretDialog("* Ngươi... mạnh hơn ta nghĩ.", 1800);
-        for (const line of secretBossEndingDialogues) await typeSecretDialog(line, 1800);
-        document.getElementById('secret-boss-screen').style.display = 'none';
-        showStoryScreen('extraending');
-        return;
+    // Player — blue square, same color as maze player #007bff
+    const px = WS.playerCol * cellW + cellW/2;
+    const py = WS.playerRow * cellH + cellH/2;
+    const ps = Math.min(cellW, cellH) * 0.44;
+    // glow
+    c.save();
+    c.shadowColor = '#007bff';
+    c.shadowBlur = 14;
+    c.fillStyle = '#007bff';
+    c.fillRect(px - ps/2, py - ps/2, ps, ps);
+    c.restore();
+    // white inner highlight
+    c.fillStyle = 'rgba(255,255,255,0.25)';
+    c.fillRect(px - ps/2 + 3, py - ps/2 + 3, ps*0.4, ps*0.3);
+
+    // Boss indicator (top row center, purple silhouette)
+    const bx = (WS.COLS/2 - 0.5) * cellW;
+    const by = -cellH * 0.15;
+    c.save();
+    c.shadowColor = '#ff00ff';
+    c.shadowBlur = 20;
+    c.fillStyle = '#cc00ff';
+    // Draw simple boss diamond
+    const bs2 = cellH * 0.38;
+    c.beginPath();
+    c.moveTo(bx, by);
+    c.lineTo(bx + bs2, by + bs2);
+    c.lineTo(bx, by + bs2*2);
+    c.lineTo(bx - bs2, by + bs2);
+    c.closePath();
+    c.fill();
+    c.restore();
+
+    // Row labels
+    c.fillStyle = '#333';
+    c.font = `${Math.max(10, cellH * 0.22)}px Courier New`;
+    c.fillText('ENEMY', 4, cellH * 0.38);
+    c.fillText('YOU', 4, cellH + cellH * 0.38);
+}
+
+// ---- Player grid movement (WASD / arrows) during dodge ----
+const wsKeys = {};
+document.addEventListener('keydown', e => {
+    wsKeys[e.code] = true;
+    if (WS.active && WS.phase === 'dodge' && !WS.dodgeInputLocked) {
+        let moved = false;
+        if ((e.code === 'ArrowLeft'  || e.code === 'KeyA') && WS.playerCol > 0) { WS.playerCol--; moved = true; }
+        if ((e.code === 'ArrowRight' || e.code === 'KeyD') && WS.playerCol < WS.COLS-1) { WS.playerCol++; moved = true; }
+        if ((e.code === 'ArrowUp'    || e.code === 'KeyW') && WS.playerRow > 0) { WS.playerRow--; moved = true; }
+        if ((e.code === 'ArrowDown'  || e.code === 'KeyS') && WS.playerRow < WS.ROWS-1) { WS.playerRow++; moved = true; }
+        if (moved) { wsDrawGrid(); e.preventDefault(); }
+    }
+});
+document.addEventListener('keyup', e => { wsKeys[e.code] = false; });
+
+// Mobile grid tap
+function wsGridTap(e) {
+    if (!WS.active || WS.phase !== 'dodge' || WS.dodgeInputLocked) return;
+    const el = document.getElementById('ws-grid-canvas');
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    const rx = (touch.clientX - rect.left) / rect.width;
+    const ry = (touch.clientY - rect.top)  / rect.height;
+    const col = Math.floor(rx * WS.COLS);
+    const row = Math.floor(ry * WS.ROWS);
+    if (col >= 0 && col < WS.COLS && row >= 0 && row < WS.ROWS) {
+        WS.playerCol = col;
+        WS.playerRow = row;
+        wsDrawGrid();
+    }
+    e.preventDefault();
+}
+
+// ---- Status tick ----
+function wsTickStatus(statuses, label) {
+    let msgs = [];
+    const dmg = { arr: statuses, changed: false };
+    statuses.forEach(s => {
+        s.turns--;
+        if (s.type === 'POISON') msgs.push(`${label} chịu ${label === 'Bạn' ? 8 : 6} sát thương độc!`);
+        if (s.type === 'BURN')   msgs.push(`${label} cháy -5 HP mỗi turn!`);
+        if (s.turns <= 0) dmg.changed = true;
+    });
+    const filtered = statuses.filter(s => s.turns > 0);
+    return { filtered, msgs };
+}
+
+function wsCalcDmg(atk, def, mult = 1.0, armorPierce = 0) {
+    const effDef = def * (1 - armorPierce);
+    return Math.max(1, Math.round((atk * mult) - effDef * 0.5 + (Math.random() * 6 - 3)));
+}
+
+// ---- ATTACK PHASE ----
+window.wsUseSkill = async function(skillId) {
+    if (!WS.playerTurn || WS.phase !== 'attack_player') return;
+    WS.playerTurn = false;
+    wsSetMenu(false, 'none');
+
+    const skill = WS.SKILLS.find(s => s.id === skillId);
+    if (!skill) { WS.playerTurn = true; return; }
+
+    if (skillId === 'STRIKE') {
+        const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 1.5, 0.5);
+        WS.bossHP = Math.max(0, WS.bossHP - dmg);
+        await wsDialog(`⚔️ STRIKE — Bạn tấn công! Gây ${dmg} sát thương!`, 1500);
+        wsFlashBoss();
+    } else if (skillId === 'HEAVY') {
+        const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 2.0);
+        WS.bossHP = Math.max(0, WS.bossHP - dmg);
+        WS.bossStatus.push({ type: 'DEBUFF_DEF', turns: 1 });
+        await wsDialog(`💥 HEAVY — Cú đánh nghiền nát! ${dmg} sát thương + -DEF boss 1 turn!`, 1600);
+        wsFlashBoss();
+    } else if (skillId === 'FORESEEN') {
+        WS.foreseen = true;
+        WS.cooldowns['FORESEEN'] = 2;
+        await wsDialog(`👁 FORESEEN — Bạn nhìn thấu tâm trí boss. Pattern tiếp theo sẽ hiển thị sớm!`, 1800);
+    } else if (skillId === 'HEAL') {
+        const heal = 25;
+        WS.playerHP = Math.min(WS.playerMaxHP, WS.playerHP + heal);
+        WS.cooldowns['HEAL'] = 3;
+        await wsDialog(`💚 RECOVER — Bạn hồi +${heal} HP! (${Math.ceil(WS.playerHP)}/${WS.playerMaxHP})`, 1600);
+    } else if (skillId === 'NULLIFY') {
+        WS.bossStatus = [];
+        WS.playerStatus = WS.playerStatus.filter(s => s.type !== 'POISON' && s.type !== 'BURN' && s.type !== 'FREEZE');
+        WS.cooldowns['NULLIFY'] = 3;
+        await wsDialog(`🛡 NULLIFY — Triệt tiêu mọi status effect! Màn chắn tẩy sạch!`, 1800);
     }
 
-    // Boss tấn công lại
-    await secretBossAttack();
+    // Tick cooldowns
+    Object.keys(WS.cooldowns).forEach(k => { if (WS.cooldowns[k] > 0 && k !== skillId) WS.cooldowns[k]--; });
+    WS.cooldowns[skillId] = skill.cd;
+
+    wsUpdateHPBars();
+
+    if (WS.bossHP <= 0) { await wsEnding(true); return; }
+    if (WS.bossHP <= WS.bossMaxHP * 0.5) WS.bossPhase = 1;
+
+    // → Boss attacks
+    await wsBossAttackPhase();
 };
 
-async function startSecretBoss() {
-    secretBossActive = true;
-    secretBossHP = 500;
-    secretPlayerHP = 100;
-    secretBossPhase = 0;
-    secretBossTurn = false;
-    updateSecretBossHPDisplay();
+function wsFlashBoss() {
+    const img = document.getElementById('ws-boss-img');
+    if (!img) return;
+    img.style.filter = 'hue-rotate(280deg) brightness(5)';
+    setTimeout(() => img.style.filter = 'hue-rotate(280deg) drop-shadow(0 0 20px #ff00ff) brightness(1.5)', 250);
+}
 
+async function wsBossAttackPhase() {
+    WS.phase = 'attack_boss';
+    WS.turnCount++;
+
+    // Status ticks
+    const { filtered: pFilt, msgs: pMsgs } = wsTickStatus(WS.playerStatus, 'Bạn');
+    WS.playerStatus = pFilt;
+    const { filtered: bFilt, msgs: bMsgs } = wsTickStatus(WS.bossStatus, 'Boss');
+    WS.bossStatus = bFilt;
+    for (const m of [...pMsgs, ...bMsgs]) { await wsDialog(`🔥 ${m}`, 1000); }
+
+    // Poison/burn damage
+    const poisonCount = WS.playerStatus.filter(s => s.type === 'POISON').length;
+    if (poisonCount) { WS.playerHP = Math.max(0, WS.playerHP - 8 * poisonCount); wsUpdateHPBars(); }
+    if (WS.playerHP <= 0) { await wsEnding(false); return; }
+
+    // Pick move (enraged = more aggressive)
+    let moves = WS_BOSS_MOVES.slice();
+    if (WS.bossPhase === 1) moves = [...moves, WS_BOSS_MOVES[5], WS_BOSS_MOVES[5]]; // weight RAGE
+    const isFrozen = WS.playerStatus.some(s => s.type === 'FREEZE');
+    const move = moves[Math.floor(Math.random() * moves.length)];
+
+    // SNIPE: target player's column
+    if (move.name === 'SNIPE') {
+        move.warning = [{ col: WS.playerCol, row: 0 }, { col: WS.playerCol, row: 1 }];
+    }
+
+    await wsDialog(`* ???: ${move.desc}`, 1200);
+
+    // FORESEEN: show warning earlier
+    if (WS.foreseen) {
+        WS.warningCells = move.warning || [];
+        wsDrawGrid();
+        await wsDialog(`👁 FORESEEN aktif — Cảnh báo hiện trước! Hãy né nhanh!`, 1400);
+        WS.foreseen = false;
+    }
+
+    // Show warning phase (orange)
+    WS.warningCells = move.warning || [];
+    WS.attackCells = [];
+    wsDrawGrid();
+    wsSetMenu(true, 'dodge');
+    await wsShowWarning(1200);
+
+    // → Dodge Phase
+    await wsDodgePhase(move);
+}
+
+async function wsShowWarning(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+// ---- DODGE PHASE ----
+async function wsDodgePhase(move) {
+    WS.phase = 'dodge';
+    WS.dodgeInputLocked = false;
+    WS.dodgeResolved = false;
+
+    // Flash orange → red (hit cells = warning cells)
+    WS.attackCells = move.warning || [];
+    WS.warningCells = [];
+    wsDrawGrid();
+
+    // Countdown: player has 1.8s to move
+    const countdown = document.getElementById('ws-dodge-countdown');
+    let t = 1.8;
+    const timer = setInterval(() => {
+        t -= 0.1;
+        if (countdown) countdown.innerText = t > 0 ? `⏱ ${t.toFixed(1)}s` : '⏱ 0.0s';
+        if (t <= 0) clearInterval(timer);
+    }, 100);
+
+    await new Promise(r => setTimeout(r, 1800));
+    clearInterval(timer);
+    if (countdown) countdown.innerText = '';
+
+    WS.dodgeInputLocked = true;
+
+    // Check hit
+    const playerHit = WS.attackCells.some(a => a.col === WS.playerCol && a.row === WS.playerRow);
+    let dmg = 0;
+    if (playerHit) {
+        const isFrozen = WS.playerStatus.some(s => s.type === 'FREEZE');
+        const debuffDef = WS.bossStatus.some(s => s.type === 'DEBUFF_DEF');
+        dmg = wsCalcDmg(WS.bossATK * (WS.bossPhase === 1 ? 1.4 : 1.0), WS.playerDEF * (isFrozen ? 0.5 : 1.0), move.dmgMult);
+        WS.playerHP = Math.max(0, WS.playerHP - dmg);
+        if (move.status) {
+            // Immunity check
+            const rollImm = Math.random() * 100;
+            if (rollImm > WS.playerIMM) {
+                WS.playerStatus.push({ ...move.status });
+            }
+        }
+        // Screen shake
+        const sb = document.getElementById('secret-boss-screen');
+        if (sb) { sb.style.animation = 'bossShakeIntro 0.3s'; setTimeout(() => sb.style.animation = '', 300); }
+        await wsDialog(`💥 Trúng đòn! Chịu ${dmg} sát thương!${move.status && WS.playerStatus.find(s=>s.type===move.status.type) ? ` + ${move.status.type}!` : ''}`, 1400);
+    } else {
+        await wsDialog(`✨ Né thành công! Không bị thương!`, 1000);
+    }
+
+    WS.warningCells = [];
+    WS.attackCells = [];
+    wsUpdateHPBars();
+    wsDrawGrid();
+    wsSetMenu(false, 'none');
+
+    if (WS.playerHP <= 0) { await wsEnding(false); return; }
+
+    // Next turn: player attacks
+    await wsStartPlayerTurn();
+}
+
+async function wsStartPlayerTurn() {
+    WS.phase = 'attack_player';
+    WS.playerTurn = true;
+    WS.playerRow = 1; // reset to safe bottom row between turns
+    wsDrawGrid();
+    await wsDialog(`* Lượt của bạn. Chọn kỹ năng!`, 900);
+    wsSetMenu(true, 'attack');
+}
+
+async function wsEnding(playerWon) {
+    WS.phase = 'ending';
+    WS.active = false;
+    wsSetMenu(false, 'none');
+    WS.warningCells = [];
+    WS.attackCells = [];
+    wsDrawGrid();
+
+    if (playerWon) {
+        await wsDialog('* ...', 1500);
+        await wsDialog('* Ngươi... thực sự đã làm được.', 2000);
+        await wsDialog('* Những đêm thức khuya. Những deadline căng thẳng.', 2000);
+        await wsDialog('* Ta là tất cả nỗi sợ của ngươi. Nhưng ngươi đã vượt qua.', 2200);
+        await wsDialog('* Mang theo điều đó. Nó là của ngươi.', 2000);
+        await wsDialog('* ...Chúc mừng tốt nghiệp, sinh viên.', 2500);
+        document.getElementById('secret-boss-screen').style.display = 'none';
+        // TRUE ENDING
+        const screen = document.getElementById('story-screen');
+        document.getElementById('story-img').src = 'bg.png';
+        document.getElementById('story-text').innerText = 'TRUE ENDING ✦\n\nBạn đã hiểu rằng những khó khăn, những đêm thức trắng, những deadline căng thẳng... tất cả đều là một phần của hành trình. UIT không phải là ác mộng — đó là nơi bạn trưởng thành.\n\nChúc mừng tốt nghiệp, thật sự.';
+        document.getElementById('story-footer').innerHTML = `<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px;"><button class="retry-btn" style="background:#1a0033;border-color:#ff00ff;" onclick="location.reload()">CHƠI LẠI</button><button onclick="openMemoryBook()" style="padding:12px 20px;background:#003;border:2px solid #0af;color:#0af;font-family:'Courier New',Courier,monospace;cursor:pointer;border-radius:4px;">📖 UIT Gallery</button></div>`;
+        screen.style.display = 'flex';
+        isPaused = true;
+        updateActionBtn();
+    } else {
+        await wsDialog('* Ngươi đã ngã...', 1500);
+        await wsDialog('* Nhưng đây không phải kết thúc. Hãy thử lại.', 2000);
+        document.getElementById('secret-boss-screen').style.display = 'none';
+        showStoryScreen('extraending');
+    }
+}
+
+async function startSecretBoss() {
+    // Init state
+    WS.active = true;
+    WS.playerHP = WS.playerMaxHP;
+    WS.bossHP   = WS.bossMaxHP;
+    WS.bossPhase = 0;
+    WS.playerCol = 2; WS.playerRow = 1;
+    WS.playerStatus = []; WS.bossStatus = [];
+    WS.warningCells = []; WS.attackCells = [];
+    WS.foreseen = false;
+    WS.cooldowns = { STRIKE: 0, FORESEEN: 0, HEAL: 0, NULLIFY: 0 };
+    WS.turnCount = 0;
+    secretBossActive = true;
+
+    // Show screen
     const screen = document.getElementById('secret-boss-screen');
     screen.style.display = 'flex';
-    document.getElementById('secret-boss-menu').style.visibility = 'hidden';
     document.getElementById('story-screen').style.display = 'none';
+    wsSetMenu(false, 'none');
+    wsUpdateHPBars();
 
-    // Intro sequence
-    await typeSecretDialog("* ...", 1500);
-    await typeSecretDialog("* Đợi đã...", 1200);
-    await typeSecretDialog("* Ngươi nghĩ câu chuyện kết thúc ở đây?", 2000);
-    await typeSecretDialog("* Tôi là phần còn lại mà ngươi chưa bao giờ giải quyết.", 2000);
-    await typeSecretDialog("* ???: Hãy đối mặt với ta một lần nữa.", 2000);
+    // Bind grid tap
+    const gc = document.getElementById('ws-grid-canvas');
+    if (gc) {
+        gc.addEventListener('click', wsGridTap);
+        gc.addEventListener('touchstart', wsGridTap, { passive: false });
+    }
 
-    // Start combat
-    document.getElementById('secret-boss-menu').style.visibility = 'visible';
+    // Resize grid canvas to its container
+    function wsResizeCanvas() {
+        const gc2 = document.getElementById('ws-grid-canvas');
+        if (!gc2) return;
+        const parent = gc2.parentElement;
+        if (parent) { gc2.width = parent.clientWidth; gc2.height = parent.clientHeight; }
+        wsDrawGrid();
+    }
+    wsResizeCanvas();
+    window.addEventListener('resize', wsResizeCanvas);
+
+    // Intro dialogues
+    await wsDialog('* ...', 1400);
+    await wsDialog('* Đợi đã.', 1000);
+    await wsDialog('* Ngươi nghĩ câu chuyện kết thúc ở đây?', 2000);
+    await wsDialog('* Ta là phần còn lại. Phần ngươi chưa bao giờ đối mặt.', 2200);
+    await wsDialog('* ???: Hãy chiến đấu thật sự. Theo luật của ta.', 2000);
+    await wsDialog(`📋 Luật chiến đấu:\n• Attack Phase: Chọn kỹ năng tấn công\n• Dodge Phase: Di chuyển trên lưới để né đòn\n• Dùng ← → ↑ ↓ hoặc chạm vào ô để né`, 3500);
+
+    await wsStartPlayerTurn();
 }
 
 async function startDodgePhase(damage, duration, patterns) {

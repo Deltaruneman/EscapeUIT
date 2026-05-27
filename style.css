@@ -536,3 +536,29 @@ canvas { display: block; margin: 0 auto; background: #000; }
     100% { transform: translateY(0px) rotate(-2deg); }
 }
 #boss-shortcut-btn:hover, #boss-shortcut-btn:active { background: #440000 !important; box-shadow: 0 0 16px rgba(255,68,68,0.6); }
+
+/* ===== WHITE SOULS SKILL BUTTONS ===== */
+.ws-skill-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 140px;
+    padding: 10px 6px;
+    background: #000;
+    color: #fff;
+    border: 2px solid #ff00ff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(0.68rem, 2.4vw, 0.9rem);
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 3px;
+    min-height: 46px;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.ws-skill-btn:hover, .ws-skill-btn:active { background: #ff00ff; color: #000; }
+.ws-skill-btn.ws-cd { border-color: #444; color: #555; cursor: not-allowed; }
+.ws-skill-btn.ws-cd:hover { background: #000; color: #555; }
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #ws-boss-img { height: clamp(50px, 10vh, 80px) !important; }
+}

@@ -15,7 +15,7 @@
     <img id="story-img-start" src="boss.png">
     <p>Chúc bạn có 4 năm ở đây thật vui vẻ :)</p>
     <button id="start-btn">CHƠI GAME</button>
-    <button id="boss-shortcut-btn" style="padding:12px 28px;font-size:1rem;background:#1a0000;color:#ff4444;border:2px solid #ff4444;cursor:pointer;border-radius:4px;font-family:'Courier New',Courier,monospace;margin-top:8px;min-width:200px;transition:0.2s;">⚔️BOSS FIGHT</button>
+    <button id="boss-shortcut-btn" style="padding:12px 28px;font-size:1rem;background:#1a0000;color:#ff4444;border:2px solid #ff4444;cursor:pointer;border-radius:4px;font-family:'Courier New',Courier,monospace;margin-top:8px;min-width:200px;transition:0.2s;">⚔️ VÀO THẲNG BOSS FIGHT</button>
 </div>
 
 <!-- Warning overlay trước khi boss tấn công -->
@@ -23,25 +23,64 @@
     <div id="boss-warning-inner" style="text-align:center;animation:warningPulse 0.4s ease-in-out infinite alternate;">
         <div style="font-size:clamp(2rem,8vw,4rem);color:#ff0000;font-family:'Courier New',Courier,monospace;font-weight:bold;text-shadow:0 0 30px red,0 0 60px red;">⚠ CẢNH BÁO ⚠</div>
         <div id="boss-warning-text" style="font-size:clamp(1rem,4vw,1.6rem);color:#ffcc00;font-family:'Courier New',Courier,monospace;margin-top:16px;text-shadow:0 0 10px orange;"></div>
-        <div style="margin-top:24px;font-size:0.9rem;color:#888;font-family:'Courier New',Courier,monospace;">Chuẩn bị!</div>
+        <div style="margin-top:24px;font-size:0.9rem;color:#888;font-family:'Courier New',Courier,monospace;">Chuẩn bị phản xạ!</div>
     </div>
 </div>
 
-<!-- Secret Boss screen -->
-<div id="secret-boss-screen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:5000;flex-direction:column;justify-content:center;align-items:center;">
-    <div style="font-size:clamp(1.5rem,6vw,3rem);color:#ff00ff;font-family:'Courier New',Courier,monospace;text-shadow:0 0 20px #ff00ff,0 0 40px #ff00ff;animation:secretFlicker 0.8s infinite alternate;margin-bottom:20px;">??? XUẤT HIỆN ???</div>
-    <img src="boss.png" id="secret-boss-img" style="height:clamp(100px,22vh,200px);filter:hue-rotate(280deg) drop-shadow(0 0 30px #ff00ff) brightness(1.5);animation:secretBossFloat 2s ease-in-out infinite;">
-    <div id="secret-boss-dialog" style="margin-top:24px;max-width:600px;width:90%;background:#000;border:3px solid #ff00ff;padding:16px 20px;font-family:'Courier New',Courier,monospace;font-size:clamp(0.9rem,3vw,1.1rem);color:#fff;min-height:60px;box-shadow:0 0 30px #ff00ff;"></div>
-    <div id="secret-boss-stats" style="margin-top:12px;width:90%;max-width:600px;display:flex;justify-content:space-between;font-family:'Courier New',Courier,monospace;font-size:0.9rem;border:2px solid #fff;padding:8px 12px;">
-        <span>Bạn - HP: <span id="secret-player-hp" style="color:lime;">100</span>/100</span>
-        <span>??? - HP: <span id="secret-boss-hp" style="color:#ff00ff;">500</span>/500</span>
+<!-- Secret Boss screen — White Souls system -->
+<div id="secret-boss-screen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:5000;flex-direction:column;justify-content:space-between;align-items:center;padding:8px;box-sizing:border-box;overflow:hidden;">
+
+    <!-- Top: Boss image + HP bars -->
+    <div style="width:100%;max-width:700px;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="font-size:clamp(1.2rem,4vw,2rem);color:#ff00ff;font-family:'Courier New',Courier,monospace;text-shadow:0 0 16px #ff00ff;animation:secretFlicker 0.9s infinite alternate;">??? — THE SHADOW</div>
+        <img src="boss.png" id="ws-boss-img" style="height:clamp(70px,14vh,130px);filter:hue-rotate(280deg) drop-shadow(0 0 20px #ff00ff) brightness(1.4);animation:secretBossFloat 2.2s ease-in-out infinite;">
+
+        <!-- Boss HP -->
+        <div style="width:100%;font-family:'Courier New',Courier,monospace;font-size:0.8rem;color:#ff00ff;">
+            ??? — HP: <span id="ws-boss-hp-num" style="color:#ff00ff;">300/300</span>
+            <span id="ws-boss-status" style="color:orange;margin-left:8px;font-size:0.7rem;"></span>
+            <div style="background:#222;height:10px;border:1px solid #ff00ff;border-radius:2px;margin-top:3px;">
+                <div id="ws-boss-hp-bar" style="height:100%;width:100%;background:linear-gradient(90deg,#cc00ff,#ff00ff);border-radius:2px;transition:width 0.35s;"></div>
+            </div>
+        </div>
+        <!-- Player HP -->
+        <div style="width:100%;font-family:'Courier New',Courier,monospace;font-size:0.8rem;color:lime;">
+            Bạn — HP: <span id="ws-player-hp-num" style="color:lime;">100/100</span>
+            <span id="ws-player-status" style="color:orange;margin-left:8px;font-size:0.7rem;"></span>
+            <div style="background:#222;height:10px;border:1px solid lime;border-radius:2px;margin-top:3px;">
+                <div id="ws-player-hp-bar" style="height:100%;width:100%;background:linear-gradient(90deg,#00cc44,#00ff88);border-radius:2px;transition:width 0.35s;"></div>
+            </div>
+        </div>
     </div>
-    <div id="secret-boss-menu" style="margin-top:12px;display:flex;gap:8px;width:90%;max-width:600px;">
-        <button onclick="secretBossAction('FIGHT')" style="flex:1;padding:12px 4px;background:#000;color:#fff;border:2px solid #fff;font-family:'Courier New',Courier,monospace;font-size:clamp(0.7rem,2.5vw,1rem);font-weight:bold;cursor:pointer;min-height:50px;transition:0.15s;" onmouseover="this.style.background='#fff';this.style.color='#000'" onmouseout="this.style.background='#000';this.style.color='#fff'">⚔️ FIGHT</button>
-        <button onclick="secretBossAction('QUESTION')" style="flex:1;padding:12px 4px;background:#000;color:#fff;border:2px solid #fff;font-family:'Courier New',Courier,monospace;font-size:clamp(0.7rem,2.5vw,1rem);font-weight:bold;cursor:pointer;min-height:50px;transition:0.15s;" onmouseover="this.style.background='#fff';this.style.color='#000'" onmouseout="this.style.background='#000';this.style.color='#fff'">❓ HỎI</button>
-        <button onclick="secretBossAction('ACCEPT')" style="flex:1;padding:12px 4px;background:#000;color:#fff;border:2px solid #fff;font-family:'Courier New',Courier,monospace;font-size:clamp(0.7rem,2.5vw,1rem);font-weight:bold;cursor:pointer;min-height:50px;transition:0.15s;" onmouseover="this.style.background='#fff';this.style.color='#000'" onmouseout="this.style.background='#000';this.style.color='#fff'">🌸 CHẤP NHẬN</button>
-        <button onclick="secretBossAction('RUN')" style="flex:1;padding:12px 4px;background:#000;color:#fff;border:2px solid #fff;font-family:'Courier New',Courier,monospace;font-size:clamp(0.7rem,2.5vw,1rem);font-weight:bold;cursor:pointer;min-height:50px;transition:0.15s;" onmouseover="this.style.background='#fff';this.style.color='#000'" onmouseout="this.style.background='#000';this.style.color='#fff'">🏃 CHẠY</button>
+
+    <!-- Middle: Grid arena -->
+    <div style="width:100%;max-width:700px;flex:1;min-height:0;display:flex;flex-direction:column;gap:4px;padding:4px 0;">
+        <!-- Phase label + countdown -->
+        <div style="display:flex;justify-content:space-between;align-items:center;font-family:'Courier New',Courier,monospace;font-size:0.78rem;color:#888;padding:0 2px;">
+            <span id="ws-phase-label">BATTLE</span>
+            <span id="ws-dodge-countdown" style="color:#ff4400;font-weight:bold;"></span>
+        </div>
+        <!-- Grid canvas -->
+        <div style="flex:1;min-height:0;width:100%;border:2px solid #1a1a6a;border-radius:4px;overflow:hidden;position:relative;">
+            <canvas id="ws-grid-canvas" style="width:100%;height:100%;display:block;cursor:pointer;"></canvas>
+        </div>
+        <!-- Dodge hint -->
+        <div id="ws-dodge-info" style="display:none;justify-content:center;align-items:center;gap:8px;font-family:'Courier New',Courier,monospace;font-size:0.78rem;color:#aaa;">
+            <span>← → ↑ ↓ hoặc chạm ô trên lưới để NÉ!</span>
+        </div>
     </div>
+
+    <!-- Bottom: Dialog + skill menu -->
+    <div style="width:100%;max-width:700px;display:flex;flex-direction:column;gap:6px;">
+        <!-- Dialog box -->
+        <div id="ws-dialog" style="width:100%;background:#000;border:2px solid #fff;color:#fff;font-family:'Courier New',Courier,monospace;font-size:clamp(0.78rem,2.8vw,1rem);padding:8px 12px;box-sizing:border-box;min-height:44px;white-space:pre-wrap;border-radius:2px;"></div>
+
+        <!-- Skill menu (attack phase) -->
+        <div id="ws-attack-menu" style="display:none;flex-direction:column;gap:4px;">
+            <div id="ws-skill-btns" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+        </div>
+    </div>
+
 </div>
 
 <div id="story-screen" class="full-overlay">
