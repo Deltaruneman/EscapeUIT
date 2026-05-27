@@ -1250,16 +1250,16 @@ window.wsUseSkill = async function(skillId) {
     const skill = WS.SKILLS.find(s => s.id === skillId);
     if (!skill) { WS.playerTurn = true; return; }
 
-    if (skillId === 'Attack') {
+    if (skillId === 'STRIKE') {
         const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 1.5, 0.5);
         WS.bossHP = Math.max(0, WS.bossHP - dmg);
-        await wsDialog(`⚔️ Attack — Bạn tấn công! Gây ${dmg} sát thương!`, 1500);
+        await wsDialog(`⚔️ STRIKE — Bạn tấn công! Gây ${dmg} sát thương!`, 1500);
         wsFlashBoss();
-    } else if (skillId === 'Heavy') {
+    } else if (skillId === 'HEAVY') {
         const dmg = wsCalcDmg(WS.playerATK, WS.bossDEF, 2.0);
         WS.bossHP = Math.max(0, WS.bossHP - dmg);
         WS.bossStatus.push({ type: 'DEBUFF_DEF', turns: 1 });
-        await wsDialog(`💥 Heavy — Cú đánh nghiền nát! ${dmg} sát thương + -DEF boss 1 turn!`, 1600);
+        await wsDialog(`💥 HEAVY — Cú đánh nghiền nát! ${dmg} sát thương + -DEF boss 1 turn!`, 1600);
         wsFlashBoss();
     } else if (skillId === 'FORESEEN') {
         WS.foreseen = true;
