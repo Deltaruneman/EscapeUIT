@@ -1169,7 +1169,7 @@ function wsDrawGrid() {
     c.save();
     c.shadowColor = '#ff00ff';
     c.shadowBlur = 20;
-    c.fillStyle = '#cc00ff';
+
     // Draw simple boss diamond
     const bs2 = cellH * 0.38;
     c.beginPath();
