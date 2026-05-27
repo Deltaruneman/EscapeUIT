@@ -397,9 +397,12 @@ const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
     if (isPaused && (e.code === 'KeyJ' || e.code === 'Enter')) handleNextStory();
-    // Secret boss trigger: press "2" on extraending screen
-    if (e.code === 'Digit2' && _secretBossUnlocked && !secretBossActive) {
+    // Secret boss trigger: press "2" bất kỳ lúc nào sau khi boss chết
+    if (e.code === 'Digit2' && _secretBossUnlocked) {
         _secretBossUnlocked = false;
+        // Ẩn tất cả màn hình hiện tại
+        document.getElementById('battle-screen').style.setProperty('display', 'none', 'important');
+        document.getElementById('story-screen').style.display = 'none';
         startSecretBoss();
     }
     if (e.code === 'Escape') {
@@ -1593,6 +1596,7 @@ window.battleAction = async function(action) {
         playVictorySFX();
         if (battleCanvas) { battleCanvas.remove(); battleCanvas = null; }
         showBattleMenu(false);
+        _secretBossUnlocked = true;   // unlock ngay từ đây — spam 2 lúc boss nói cũng được
         await playBossEndingDialogues();
         // Ẩn battle screen TRƯỚC khi hiện story screen
         document.getElementById('battle-screen').style.setProperty('display', 'none', 'important');
