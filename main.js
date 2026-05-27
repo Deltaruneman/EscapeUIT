@@ -53,6 +53,7 @@ enemies[2].roomX = 0; enemies[2].roomY = 1;
 
 let currentStoryIdx = 0;
 let storyMode = "intro";
+let _secretBossUnlocked = false;
 
 // ===== AUDIO =====
 const bgMusic = new Audio('bgm.wav');
@@ -305,9 +306,13 @@ function showStoryScreen(type) {
                 <button id="memory-book-btn" onclick="openMemoryBook()" title="Xem lịch sử UIT">
                     <img src="images/uitlogo.png" alt="Ký Ức UIT" onerror="this.style.display='none'; this.parentNode.innerHTML='📖 UIT Gallery';">
                 </button>
-            </div>`;
+            </div>
+            <div style="margin-top:16px;font-size:0.8rem;color:#333;font-family:'Courier New',Courier,monospace;">...</div>
+            <button id="secret-trigger-btn" onclick="if(_secretBossUnlocked&&!secretBossActive){_secretBossUnlocked=false;startSecretBoss();}" style="margin-top:8px;background:transparent;border:none;color:#111;font-size:0.7rem;cursor:pointer;font-family:'Courier New',Courier,monospace;padding:4px 8px;" title="[2]">.</button>`;
         screen.style.display = 'flex';
         updateActionBtn();
+        // Listen for secret boss trigger (press "2")
+        _secretBossUnlocked = true;
         return;
     }
 
@@ -392,6 +397,11 @@ const keysPressed = {};
 window.onkeydown = (e) => {
     keysPressed[e.code] = true;
     if (isPaused && (e.code === 'KeyJ' || e.code === 'Enter')) handleNextStory();
+    // Secret boss trigger: press "2" on extraending screen
+    if (e.code === 'Digit2' && _secretBossUnlocked && !secretBossActive) {
+        _secretBossUnlocked = false;
+        startSecretBoss();
+    }
     if (e.code === 'Escape') {
         const helpOverlay = document.getElementById('help-overlay');
         if (helpOverlay && helpOverlay.classList.contains('active')) {
@@ -418,6 +428,25 @@ window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('start-screen').style.display = 'none';
             showStoryScreen("intro");
         }, { passive: false });
+    }
+
+    // Boss fight shortcut button
+    const bossShortcutBtn = document.getElementById('boss-shortcut-btn');
+    if (bossShortcutBtn) {
+        const goBoss = (e) => {
+            if (e.type === 'touchend') e.preventDefault();
+            // Set all keys collected so boss fight makes sense
+            keysFound = 4;
+            hiddenItemsFound = hiddenItemScenes.length;
+            hopeCount = 6;
+            document.getElementById('key-count').innerText = keysFound;
+            document.getElementById('item-count').innerText = hiddenItemsFound;
+            document.getElementById('start-screen').style.display = 'none';
+            // Go directly to plot twist → boss fight
+            showStoryScreen('plot_twist');
+        };
+        bossShortcutBtn.addEventListener('click', goBoss);
+        bossShortcutBtn.addEventListener('touchend', goBoss, { passive: false });
     }
 
     const respawnBtn = document.getElementById('respawn-btn');
@@ -933,12 +962,209 @@ function showBattleMenu(show) {
     menu.style.pointerEvents = show ? 'auto' : 'none';
 }
 
+// ===== BOSS WARNING OVERLAY =====
+function showBossWarning(message, duration = 1500) {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('boss-warning-overlay');
+        const textEl  = document.getElementById('boss-warning-text');
+        if (!overlay || !textEl) { resolve(); return; }
+
+        textEl.innerText = message;
+        overlay.style.display = 'flex';
+        overlay.classList.remove('shaking');
+
+        // Trigger shake after brief delay
+        setTimeout(() => {
+            overlay.classList.add('shaking');
+            setTimeout(() => overlay.classList.remove('shaking'), 400);
+        }, 200);
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            resolve();
+        }, duration);
+    });
+}
+
+// ===== SECRET BOSS =====
+let secretBossActive = false;
+let secretBossHP = 500;
+let secretPlayerHP = 100;
+let secretBossTurn = true;
+let secretBossPhase = 0; // 0=normal,1=enraged
+
+const secretBossDialogues = [
+    "* ...",
+    "* Còn ngươi... ngươi đã ở đây rồi.",
+    "* Ta là phần chưa bao giờ kết thúc của UIT.",
+    "* Những đêm thức khuya. Những deadline bỏ lỡ. Những lần muốn bỏ cuộc.",
+    "* Ta là tất cả những điều đó.",
+    "* Và ngươi... không thể xóa bỏ ta."
+];
+
+const secretBossAttackDialogues = [
+    "* CHUỖI BÀI TẬP KHÔNG HỒI KẾT! (-15 HP)",
+    "* ĐỒ ÁN NHÓM TAN RÃ VÀO PHÚT CUỐI! (-12 HP)",
+    "* MÔI TRƯỜNG DEV BỊ HỎNG LÚC NỘP BÀI! (-18 HP)",
+    "* GIT CONFLICT TOÀN BỘ DỰ ÁN! (-10 HP)"
+];
+
+const secretBossEndingDialogues = [
+    "* ...",
+    "* Ngươi... thực sự đã đánh bại ta.",
+    "* Nhưng nhớ lấy điều này...",
+    "* Những khó khăn đó không phải để đánh bại ngươi.",
+    "* Chúng là để ngươi trở nên mạnh mẽ hơn.",
+    "* Giờ hãy thức dậy. Đồ án còn chưa xong.",
+    "* ...Chúc may mắn, sinh viên."
+];
+
+async function typeSecretDialog(text, holdMs = 2000) {
+    return new Promise(resolve => {
+        const el = document.getElementById('secret-boss-dialog');
+        if (!el) { resolve(); return; }
+        el.innerText = '';
+        let i = 0;
+        function next() {
+            if (i < text.length) { el.innerText += text[i]; i++; setTimeout(next, 28); }
+            else setTimeout(resolve, holdMs);
+        }
+        next();
+    });
+}
+
+function updateSecretBossHPDisplay() {
+    const bEl = document.getElementById('secret-boss-hp');
+    const pEl = document.getElementById('secret-player-hp');
+    if (bEl) bEl.innerText = Math.max(0, secretBossHP);
+    if (pEl) pEl.innerText = Math.max(0, secretPlayerHP);
+}
+
+async function secretBossAttack() {
+    const dmgAmount = 10 + secretBossPhase * 5 + Math.floor(Math.random() * 8);
+    const msg = secretBossAttackDialogues[Math.floor(Math.random() * secretBossAttackDialogues.length)];
+    const realMsg = msg.replace(/\(-\d+ HP\)/, `(-${dmgAmount} HP)`);
+    secretPlayerHP = Math.max(0, secretPlayerHP - dmgAmount);
+    updateSecretBossHPDisplay();
+
+    // Flash red on player HP
+    const pEl = document.getElementById('secret-player-hp');
+    if (pEl) { pEl.style.color = 'red'; setTimeout(() => pEl.style.color = 'lime', 500); }
+
+    await typeSecretDialog(realMsg, 1200);
+
+    if (secretPlayerHP <= 0) {
+        await typeSecretDialog("* Ngươi... thật sự không thể vượt qua được bóng tối trong lòng mình.", 2000);
+        await typeSecretDialog("* Nhưng không sao. Hãy thử lại.", 2000);
+        document.getElementById('secret-boss-screen').style.display = 'none';
+        showStoryScreen('extraending');
+        return;
+    }
+    secretBossTurn = false;
+    document.getElementById('secret-boss-menu').style.visibility = 'visible';
+}
+
+window.secretBossAction = async function(action) {
+    if (secretBossTurn) return;
+    secretBossTurn = true;
+    document.getElementById('secret-boss-menu').style.visibility = 'hidden';
+
+    if (action === 'FIGHT') {
+        const dmg = 30 + Math.floor(Math.random() * 25);
+        secretBossHP = Math.max(0, secretBossHP - dmg);
+        if (secretBossHP <= 150) secretBossPhase = 1;
+        updateSecretBossHPDisplay();
+        const bImg = document.getElementById('secret-boss-img');
+        if (bImg) { bImg.style.filter = 'hue-rotate(280deg) brightness(5) drop-shadow(0 0 20px white)'; setTimeout(() => bImg.style.filter = 'hue-rotate(280deg) drop-shadow(0 0 30px #ff00ff) brightness(1.5)', 300); }
+        await typeSecretDialog(`* Bạn tập hợp tất cả ký ức đẹp ở UIT và tấn công! ${dmg} sát thương!`, 1400);
+    } else if (action === 'QUESTION') {
+        await typeSecretDialog(secretBossDialogues[Math.floor(Math.random() * secretBossDialogues.length)], 2000);
+    } else if (action === 'ACCEPT') {
+        if (secretBossHP <= 200) {
+            // True ending — chấp nhận bóng tối
+            await typeSecretDialog("* ...Ngươi... chấp nhận ta?", 2000);
+            await typeSecretDialog("* Không ai từng làm vậy trước đây.", 2000);
+            await typeSecretDialog("* ...", 1500);
+            await typeSecretDialog("* Cảm ơn.", 2000);
+            for (const line of secretBossEndingDialogues) {
+                await typeSecretDialog(line, 1800);
+            }
+            document.getElementById('secret-boss-screen').style.display = 'none';
+            // Final true ending
+            const screen = document.getElementById('story-screen');
+            const img = document.getElementById('story-img');
+            const text = document.getElementById('story-text');
+            const footer = document.getElementById('story-footer');
+            img.src = 'bg.png';
+            text.innerText = "TRUE ENDING: Bạn đã hiểu rằng những khó khăn, những đêm thức trắng, những deadline căng thẳng... tất cả đều là một phần của hành trình. UIT không phải là ác mộng — đó là nơi bạn trưởng thành. Chúc mừng tốt nghiệp, thật sự.";
+            footer.innerHTML = `<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;"><button class="retry-btn" style="background:#1a0033;border-color:#ff00ff;" onclick="location.reload()">CHƠI LẠI</button><button id="memory-book-btn" onclick="openMemoryBook()">📖 UIT Gallery</button></div>`;
+            screen.style.display = 'flex';
+            isPaused = true;
+            updateActionBtn();
+            return;
+        } else {
+            await typeSecretDialog("* Chấp nhận ư? Còn sớm quá để nói điều đó. Ta chưa xong đâu.", 2000);
+        }
+    } else if (action === 'RUN') {
+        await typeSecretDialog("* Ngươi không thể chạy trốn khỏi chính mình.", 1800);
+        secretPlayerHP = Math.max(0, secretPlayerHP - 20);
+        updateSecretBossHPDisplay();
+    }
+
+    if (secretBossHP <= 0) {
+        // Boss bị đánh bại bằng vũ lực
+        await typeSecretDialog("* Ngươi... mạnh hơn ta nghĩ.", 1800);
+        for (const line of secretBossEndingDialogues) await typeSecretDialog(line, 1800);
+        document.getElementById('secret-boss-screen').style.display = 'none';
+        showStoryScreen('extraending');
+        return;
+    }
+
+    // Boss tấn công lại
+    await secretBossAttack();
+};
+
+async function startSecretBoss() {
+    secretBossActive = true;
+    secretBossHP = 500;
+    secretPlayerHP = 100;
+    secretBossPhase = 0;
+    secretBossTurn = false;
+    updateSecretBossHPDisplay();
+
+    const screen = document.getElementById('secret-boss-screen');
+    screen.style.display = 'flex';
+    document.getElementById('secret-boss-menu').style.visibility = 'hidden';
+    document.getElementById('story-screen').style.display = 'none';
+
+    // Intro sequence
+    await typeSecretDialog("* ...", 1500);
+    await typeSecretDialog("* Đợi đã...", 1200);
+    await typeSecretDialog("* Ngươi nghĩ câu chuyện kết thúc ở đây?", 2000);
+    await typeSecretDialog("* Tôi là phần còn lại mà ngươi chưa bao giờ giải quyết.", 2000);
+    await typeSecretDialog("* ???: Hãy đối mặt với ta một lần nữa.", 2000);
+
+    // Start combat
+    document.getElementById('secret-boss-menu').style.visibility = 'visible';
+}
+
 async function startDodgePhase(damage, duration, patterns) {
     battlePhase = 'dodge';
     dodgeDamage  = damage;
     dodgeTimer   = duration;
     dodgeDuration = duration * 1000;
     dodgeActive  = true;
+
+    // ===== CẢNH BÁO TRƯỚC KHI BOSS TẤN CÔNG =====
+    const warningMessages = [
+        "⚠ CẢNH BÁO: MƯA ĐẠN SẮP RƠI!",
+        "⚠ CẢNH BÁO: ĐẠN XOÁY SIÊU TỐC!",
+        "⚠ CẢNH BÁO: TƯỜNG ĐẠN KHÔNG NHÀ THOÁT!",
+        "⚠ CẢNH BÁO: ĐẠN TRUY ĐUỔI LIÊN HOÀN!"
+    ];
+    const warnMsg = warningMessages[Math.floor(Math.random() * warningMessages.length)];
+    await showBossWarning(warnMsg, 1500);
+    // =============================================
 
     soul.x = DODGE_BOX.x + DODGE_BOX.w / 2;
     soul.y = DODGE_BOX.y + DODGE_BOX.h / 2;

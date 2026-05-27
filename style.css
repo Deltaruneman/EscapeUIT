@@ -511,3 +511,28 @@ canvas { display: block; margin: 0 auto; background: #000; }
     .battle-menu button { min-height: 40px; font-size: 0.7rem; }
     #dialogue-box { min-height: 40px; font-size: 12px; padding: 6px 10px; }
 }
+/* ===== BOSS WARNING ===== */
+@keyframes warningPulse {
+    0%   { transform: scale(1);    opacity: 1; }
+    100% { transform: scale(1.06); opacity: 0.85; }
+}
+@keyframes warningShake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-10px); }
+    40%     { transform: translateX(10px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
+}
+#boss-warning-overlay.shaking { animation: warningShake 0.4s ease-out; }
+
+/* ===== SECRET BOSS ===== */
+@keyframes secretFlicker {
+    0%   { opacity: 1;    text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; }
+    100% { opacity: 0.7;  text-shadow: 0 0 5px #ff00ff; }
+}
+@keyframes secretBossFloat {
+    0%   { transform: translateY(0px) rotate(-2deg); }
+    50%  { transform: translateY(-14px) rotate(2deg); }
+    100% { transform: translateY(0px) rotate(-2deg); }
+}
+#boss-shortcut-btn:hover, #boss-shortcut-btn:active { background: #440000 !important; box-shadow: 0 0 16px rgba(255,68,68,0.6); }
